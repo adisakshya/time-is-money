@@ -27,5 +27,5 @@ services:
         MYSQL_ROOT_PASSWORD: root
       restart: on-failure
       volumes:
-        - ./model:/docker-entrypoint-initdb.d/:ro
+        - ./db:/docker-entrypoint-initdb.d/:ro
     
