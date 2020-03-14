@@ -16,7 +16,7 @@ const pingRounter = require('./routes/ping');
 app.use('/ping', pingRounter);
 
 /**
- * Ping Router
+ * Index Router
  */
 const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
