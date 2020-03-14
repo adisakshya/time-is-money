@@ -6,15 +6,23 @@ services:
         build: ./manager
         ports:
           - '3000:3000'
+        environment: 
+          MYSQL_HOST: database
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+          MYSQL_DATABASE: managerdb
         restart: on-failure
         depends_on: 
+          - db
+        links:
           - db
 
     db:
       image: mysql:latest
+      command: --default-authentication-plugin=mysql_native_password
       container_name: database
       ports:
-        - "32000:3306"
+        - "3306:3306"
       environment:
         MYSQL_ROOT_PASSWORD: root
       restart: on-failure
