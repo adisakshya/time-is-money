@@ -15,4 +15,10 @@ app.use(express.urlencoded({ extended: false }));
 const pingRounter = require('./routes/ping');
 app.use('/ping', pingRounter);
 
+/**
+ * Ping Router
+ */
+const indexRouter = require('./routes/index');
+app.use('/', indexRouter);
+
 module.exports = app;
