@@ -1,6 +1,7 @@
 /**
- * CSV Parser
- * Parse the CSV file
+ * Process handler
+ * Parse the CSV file 
+ * and insert the data array in MySQL database
  */
 
 /**
@@ -15,11 +16,19 @@ const path = require('path');
 const csv = require('fast-csv');
 
 /**
+ * Require saveToMySQL module
+ */
+const saveToMySQL = require('./saveToMySQL').saveToMySQL;
+
+/**
  * Parse Test CSV
  */
-const _parser = async () => {
+const _parser = async (filename) => {
+    // Data Array to store CSV information
+    let dataArray = Array();
+
     // CREATE a readstream
-    fs.createReadStream(path.resolve(__dirname, '../utils/test_csv', 'largeTestCSV.csv'))
+    fs.createReadStream(path.resolve(__dirname, '../utils/test_csv', filename))
         /**
          * Pipe
          */
@@ -35,19 +44,19 @@ const _parser = async () => {
         })
 
         /**
-         * Log row data
+         * Push CSV row data into the dataArray
          */
         .on('data', (row) => {
-            console.log(row);
+            dataArray.push(row);
         })
-
         /**
          * On completion of parsing
          * log number of rows parsed
          */
-        .on('end', (rowCount) => {
+        .on('end', async (rowCount) => {
             console.log(`Parsed ${rowCount} rows`);
+            saveToMySQL(dataArray);
         });
 };
 
-exports.csvParser = _parser;
+exports.processCSV = _parser;
