@@ -9,7 +9,7 @@ const controller = require('../controllers/ping/controller');
 /**
  * Ping Route
  */
-router.route('/ping')
+router.route('/')
   .get(controller.ping)
   .post(controller.ping);
 

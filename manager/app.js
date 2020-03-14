@@ -13,6 +13,6 @@ app.use(express.urlencoded({ extended: false }));
  * Ping Router
  */
 const pingRounter = require('./routes/ping');
-app.use('/', pingRounter);
+app.use('/ping', pingRounter);
 
 module.exports = app;
