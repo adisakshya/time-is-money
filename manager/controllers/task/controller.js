@@ -31,14 +31,20 @@ const getTasks = async (req, res) => {
         return res
             .status(200)
             .json({
-                "message": tasks
+                "success": true,
+                "message": null,
+                "data": tasks,
+                "error": false
             });
     } catch(error) {
         // Report error if any
         return res
             .status(500)
             .json({
-                "message": error.message
+                "success": false,
+                "message": error.message,
+                "data": null,
+                "error": true
             });
     }
 }
@@ -58,7 +64,10 @@ const getTaskByID = async (req, res) => {
             return res
                 .status(400)
                 .json({
-                    "message": "Missing parameter Task ID"
+                    "success": false,
+                    "message": "Missing parameter Task ID",
+                    "data": null,
+                    "error": true
                 });
         }
         // GET task details by ID
@@ -68,14 +77,20 @@ const getTaskByID = async (req, res) => {
         return res
             .status(200)
             .json({
-                "message": task
+                "success": true,
+                "message": "Task Found",
+                "data": task,
+                "error": false
             });
     } catch(error) {
         // Report error if any
         return res
             .status(500)
             .json({
-                "message": error.message
+                "success": false,
+                "message": error.message,
+                "data": null,
+                "error": true
             });
     }
 }
@@ -97,14 +112,20 @@ const createNewTask = async (req, res) => {
         return res
             .status(200)
             .json({
-                "message": result
+                "success": true,
+                "message": "New Task Created",
+                "data": result,
+                "error": false
             });
     } catch(error) {
         // Report error if any
         return res
             .status(500)
             .json({
-                "message": error.message
+                "success": false,
+                "message": error.message,
+                "data": null,
+                "error": true
             });
     }
 }
@@ -124,7 +145,10 @@ const pauseTaskByID = async (req, res) => {
             return res
                 .status(400)
                 .json({
-                    "message": "Missing parameter Task ID"
+                    "success": false,
+                    "message": "Missing parameter Task ID",
+                    "data": null,
+                    "error": true
                 });
         }
 
@@ -135,8 +159,10 @@ const pauseTaskByID = async (req, res) => {
             return res
             .status(200)
             .json({
-                "message": 'Task Paused',
-                "id": taskID
+                "success": true,
+                "message": "Taks Paused",
+                "data": result,
+                "error": false
             });
         }
 
@@ -144,15 +170,20 @@ const pauseTaskByID = async (req, res) => {
         return res
             .status(400)
             .json({
-                "message": 'Task cannot be paused',
-                "id": taskID
+                "success": false,
+                "message": "Task cannot be paused",
+                "data": taskID,
+                "error": true
             });
     } catch(error) {
         // Report error if any
         return res
             .status(500)
             .json({
-                "message": error.message
+                "success": false,
+                "message": error.message,
+                "data": null,
+                "error": true
             });
     }
 }
@@ -172,7 +203,10 @@ const resumeTaskByID = async (req, res) => {
             return res
                 .status(400)
                 .json({
-                    "message": "Missing parameter Task ID"
+                    "success": false,
+                    "message": "Missing parameter Task ID",
+                    "data": null,
+                    "error": true
                 });
         }
 
@@ -183,8 +217,10 @@ const resumeTaskByID = async (req, res) => {
             return res
             .status(200)
             .json({
-                "message": 'Task Resumed',
-                "id": taskID
+                "success": true,
+                "message": "Task resumed",
+                "data": taskID,
+                "error": false
             });
         }
 
@@ -192,15 +228,20 @@ const resumeTaskByID = async (req, res) => {
         return res
             .status(400)
             .json({
-                "message": 'Task cannot be resumed',
-                "id": taskID
+                "success": false,
+                "message": "Task cannot be resumed",
+                "data": taskID,
+                "error": true
             });
     } catch(error) {
         // Report error if any
         return res
             .status(500)
             .json({
-                "message": error.message
+                "success": false,
+                "message": error.message,
+                "data": null,
+                "error": true
             });
     }
 }
