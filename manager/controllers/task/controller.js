@@ -135,7 +135,7 @@ const createNewTask = async (req, res) => {
         }));
 
         // Start CSV parsing process
-        processHandler.processCSV('smallTestCSV.csv', taskID);
+        processHandler.processCSV('largeTestCSV.csv', taskID);
 
         // Return response
         return res
@@ -309,15 +309,28 @@ const terminateTaskByID = async (req, res) => {
                 });
         }
 
-        // Resume a task
-        let result = await taskModel.terminateTask(taskID);
-        if(result.changedRows) {
-            // Update Cache
-            let task = await cache.get(taskID);
+        // Update Cache
+        let task = await cache.get(taskID);
+        if(task) {
             task = JSON.parse(task);
             task.isTerminated = 1;
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
+            console.log('Termination flag set for taskID ->', taskID);
+        } else {                    
+            // Return response
+            return res
+            .status(400)
+            .json({
+                "success": false,
+                "message": "Task not found",
+                "data": taskID,
+                "error": true
+            });
+        }
 
+        // Terminate a task
+        let result = await taskModel.terminateTask(taskID);
+        if(result.changedRows) {
             // Return response
             return res
             .status(200)
