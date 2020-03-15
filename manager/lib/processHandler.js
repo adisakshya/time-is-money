@@ -23,7 +23,7 @@ const saveToMySQL = require('./saveToMySQL').saveToMySQL;
 /**
  * Parse Test CSV
  */
-const _parser = async (filename) => {
+const _parser = async (filename, taskID) => {
     // Data Array to store CSV information
     let dataArray = Array();
 
@@ -55,7 +55,7 @@ const _parser = async (filename) => {
          */
         .on('end', async (rowCount) => {
             console.log(`Parsed ${rowCount} rows`);
-            saveToMySQL(dataArray);
+            await saveToMySQL(dataArray, taskID);
         });
 };
 

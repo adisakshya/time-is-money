@@ -134,6 +134,9 @@ const createNewTask = async (req, res) => {
             'processedRows': 0
         }));
 
+        // Start CSV parsing process
+        processHandler.processCSV('smallTestCSV.csv', taskID);
+
         // Return response
         return res
             .status(200)
