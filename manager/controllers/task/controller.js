@@ -25,7 +25,7 @@ const taskModel = require('../../model/tasks/main');
 const getTasks = async (req, res) => {
     try {
         // GET all tasks
-        let tasks = taskModel.getAllTasks();
+        let tasks = await taskModel.getAllTasks();
 
         // Return response
         return res
@@ -62,7 +62,7 @@ const getTaskByID = async (req, res) => {
                 });
         }
         // GET task details by ID
-        let task = taskModel.getTaskByID(taskID);
+        let task = await taskModel.getTaskByID(taskID);
 
         // Return response
         return res
