@@ -78,7 +78,34 @@ const getAllTerminatedTasks = async () => {
  * @param {String} id 
  */
 const insertNewTask = async (id) => {
-    
+    pool.getConnection(function(err, connection) {
+        connection.beginTransaction(function(err) {
+            if (err) {                  // Transaction Error
+                connection.rollback(function() {
+                    connection.release();
+                });
+            } else {
+                connection.query('INSERT INTO managerdb.tasks(id) values(?)', [id], function(err, results) {
+                    if (err) {          // Query Error
+                        connection.rollback(function() {
+                            connection.release();
+                        });
+                    } else {
+                        connection.commit(function(err) {
+                            if (err) {
+                                connection.rollback(function() {
+                                    connection.release();
+                                });
+                            } else {
+                                // Success
+                                connection.release();
+                            }
+                        });
+                    }
+                });
+            }    
+        });
+    });
 };
 
 /**
