@@ -13,6 +13,12 @@ const cache = require('./cache');
  */
 const pool = require('../rdbms/pool');
 
+/**
+ * Execute query to insert a csv row in the database
+ * @param {Object} connection 
+ * @param {String} taskID 
+ * @param {Array} fields 
+ */
 const executeQuery = async (connection, taskID, fields) => {
     return new Promise((resolve, reject) => {
         // Execute Query
@@ -23,7 +29,6 @@ const executeQuery = async (connection, taskID, fields) => {
                     reject(err);
                 });
             } else {
-                console.log('Inserted csv row in database for taskID ' + taskID);
                 resolve();
             }
         });
@@ -33,40 +38,55 @@ const executeQuery = async (connection, taskID, fields) => {
 /**
  * Insert Data Array fields into MySQL database
  */
-const _saveToMySQL = async (dataArray, taskID) => {
+const saveToMySQL = async (dataArray, taskID) => {
+
+    // Promise to handle insertion of all rows in a CSV
     return new Promise((resolve, reject) => {
-        pool.getConnection(async function(err, connection) {
+
+        // Get connection from pool
+        pool.getConnection(function(err, connection) {
+
             // Start transaction
             connection.beginTransaction(async function(err) {
-                if (err) {                  // Transaction Error
+
+                // Rollback on transaction failure
+                if (err) {
                     connection.rollback(function() {
+                        // Release connection
                         connection.release();
+                        
+                        // Reject promise
                         reject(err);
                     });
                 } else {
 
+                    // Start insertion of rows in database
                     console.log('Transaction Started for taskID ' + taskID);
 
+                    // Iterate on every row of CSv and insert into database
                     for(let i=0; i<dataArray.length; i++) {
 
+                        // Get cached state of the task
                         let task = await cache.get(taskID);
                         task = JSON.parse(task);
 
                         // Check if task was terminated
+                        // if yes, then rollback and resolve promise
                         if(task.isTerminated) {
                             connection.rollback(function() {
+                                // Release connection
                                 connection.release();
-                                reject('Transaction Terminated');
+                                
+                                // Resolve promise
+                                resolve('Transaction Terminated');
                             });
                         } else if(task.isCompleted) {
-                            connection.release();
-                            reject('Transaction is complete');
+                            return;
                         } else if(task.isPaused) {
-                            console.log('task was paused');
-                            reject('Transaction Paused');
+                            return;
                         }
 
-                        // Extract Fields
+                        // Extract row fields from dataArray
                         let arr = Array();
                         let rowID = i;
                         arr.push(rowID);
@@ -75,20 +95,34 @@ const _saveToMySQL = async (dataArray, taskID) => {
                         
                         // Execute Query
                         await executeQuery(connection, taskID, fields);
+
+                        // Update cached state
+                        // increment processed rows by 1
+                        task.processedRows += 1;
+                        let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                        // console.log('Inserted csv row in database for taskID -> ' + taskID + ' processedRow -> ' + task.processedRows.toString());
                     }
 
                     // After processing complete dataArray
                     // Commit the connection
+                    console.log('Comiting Connection');
                     connection.commit(async function(err) {
                         if (err) {
+                            // Rollback on commit failure
                             connection.rollback(function() {
+                                // Release connection
                                 connection.release();
+
+                                // Reject promise
                                 reject(err);
                             });
                         } else {
                             // Success
+                            
+                            // Release connection
                             connection.release();
-                            // Update Cache
+                            
+                            // Update Cached state of task
                             let task = await cache.get(taskID);
                             task = JSON.parse(task);
                             task.isCompleted = 1;
@@ -96,14 +130,13 @@ const _saveToMySQL = async (dataArray, taskID) => {
 
                             // Reolve promise
                             console.log('Transaction Complete for taskID ' + taskID);
-                            resolve();
+                            resolve('Transaction Completed');
                         }
                     });
-
                 }    
-            });
+            });    
         });
     });
 };
 
-exports.saveToMySQL = _saveToMySQL;
+exports.saveToMySQL = saveToMySQL;
