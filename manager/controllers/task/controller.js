@@ -182,16 +182,48 @@ const pauseTaskByID = async (req, res) => {
                 });
         }
 
+        // Update cached state
+        // Get cached state
+        let task = await cache.get(taskID);
+        if(task) {
+            // Check if task can be paused
+            // A task can be paused if it is not completed and is not terminated
+            if(!(task.isCompleted || task.isTerminated)) {
+                // If task exists then set isTerminated flag to true
+                task = JSON.parse(task);
+                task.isPaused = 1;
+
+                // Update cached state
+                let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                console.log('Pause flag set for taskID ->', taskID);
+            } else {
+                // Return completed task cannot be terminated
+                return res
+                    .status(400)
+                    .json({
+                        "success": false,
+                        "message": "Completed/Terminated task cannot be paused",
+                        "data": taskID,
+                        "error": true
+                    });
+            }
+        } else {                    
+            // Return task not found
+            return res
+            .status(400)
+            .json({
+                "success": false,
+                "message": "Task not found",
+                "data": taskID,
+                "error": true
+            });
+        }
+
         // Pause a task
+        // Update flag in database
         let result = await taskModel.pauseTask(taskID);
         if(result.changedRows) {
-            // Update Cache
-            let task = await cache.get(taskID);
-            task = JSON.parse(task);
-            task.isPaused = 1;
-            let updatedTask = await cache.set(taskID, JSON.stringify(task));
-
-            // Return response
+            // Return task paused
             return res
             .status(200)
             .json({
@@ -200,17 +232,17 @@ const pauseTaskByID = async (req, res) => {
                 "data": result,
                 "error": false
             });
+        } else {
+            // Return response
+            return res
+                .status(500)
+                .json({
+                    "success": false,
+                    "message": "Something went wrong",
+                    "data": taskID,
+                    "error": true
+                });
         }
-
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task cannot be paused",
-                "data": taskID,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res
