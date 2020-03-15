@@ -30,4 +30,10 @@ router.route('/start')
 router.route('/pause')
   .get(controller.pauseTaskByID);
 
+/**
+ * RESUME a long running task
+ */
+router.route('/resume')
+  .get(controller.resumeTaskByID);
+
 module.exports = router;

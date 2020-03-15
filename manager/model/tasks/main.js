@@ -323,6 +323,47 @@ const pauseTask = async (id) => {
 };
 
 /**
+ * UPDATE a task as resumed
+ * @param {String} id 
+ */
+const resumeTask = async (id) => {
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('UPDATE managerdb.tasks as TASK SET TASK.isPaused = ? WHERE TASK.id = ? and TASK.isTerminated = ? and TASK.isCompleted = ? and TASK.isPaused = ?;', [0, id, 0, 0, 1], function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
+                                connection.release();
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
+        });
+    });
+};
+
+/**
  * UPDATE a task as terminated
  * @param {String} id 
  */
@@ -407,6 +448,7 @@ exports.deleteTaskByID = deleteTaskByID;
 exports.deleteAllTasks = deleteAllTasks;
 exports.completeTask = completeTask;
 exports.pauseTask = pauseTask;
+exports.resumeTask = resumeTask;
 exports.terminateTask = terminateTask;
 exports.getTotalRows = getTotalRows;
 exports.getProcessedRows = getProcessedRows;
