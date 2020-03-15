@@ -310,15 +310,33 @@ const terminateTaskByID = async (req, res) => {
                 });
         }
 
-        // Update Cache
+        // Update cached state
+        // Get cached state
         let task = await cache.get(taskID);
         if(task) {
-            task = JSON.parse(task);
-            task.isTerminated = 1;
-            let updatedTask = await cache.set(taskID, JSON.stringify(task));
-            console.log('Termination flag set for taskID ->', taskID);
+            // Check if task can be terminated
+            // A task can be terminated if it is not completed
+            if(!(task.isCompleted)) {
+                // If task exists then set isTerminated flag to true
+                task = JSON.parse(task);
+                task.isTerminated = 1;
+
+                // Update cached state
+                let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                console.log('Termination flag set for taskID ->', taskID);
+            } else {
+                // Return completed task cannot be terminated
+                return res
+                    .status(400)
+                    .json({
+                        "success": false,
+                        "message": "Completed task cannot be terminated",
+                        "data": taskID,
+                        "error": true
+                    });
+            }
         } else {                    
-            // Return response
+            // Return task not found
             return res
             .status(400)
             .json({
@@ -330,9 +348,10 @@ const terminateTaskByID = async (req, res) => {
         }
 
         // Terminate a task
+        // Update flag in database
         let result = await taskModel.terminateTask(taskID);
         if(result.changedRows) {
-            // Return response
+            // Return task terminated
             return res
             .status(200)
             .json({
@@ -342,16 +361,6 @@ const terminateTaskByID = async (req, res) => {
                 "error": false
             });
         }
-
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task cannot be terminated",
-                "data": taskID,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res
