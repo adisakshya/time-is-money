@@ -3,6 +3,11 @@
  */
 
 /**
+ * Require UUID Module
+ */
+const uuid = require('uuid');
+
+/**
  * Require processHandler
  */
 const processHandler = require('../../lib/processHandler');
@@ -21,7 +26,7 @@ const getTasks = async (req, res) => {
     try {
         // GET all tasks
         let tasks = taskModel.getAllTasks();
-        
+
         // Return response
         return res
             .status(200)
@@ -75,8 +80,38 @@ const getTaskByID = async (req, res) => {
     }
 }
 
+/**
+ * CREATE new long running task
+ * @param {Object} req 
+ * @param {Object} res 
+ */
+const createNewTask = async (req, res) => {
+    try {
+        // Generate taskID
+        let taskID = uuid.v4();
+
+        // Create new task
+        let result = await taskModel.insertNewTask(taskID);
+
+        // Return response
+        return res
+            .status(200)
+            .json({
+                "message": result
+            });
+    } catch(error) {
+        // Report error if any
+        return res
+            .status(500)
+            .json({
+                "message": error.message
+            });
+    }
+}
+
 exports.getTasks = getTasks;
 exports.getTaskByID = getTaskByID;
+exports.createNewTask = createNewTask;
 
 // exports.uploadRequestHandler = _uploadRequestHandler;
 // /**

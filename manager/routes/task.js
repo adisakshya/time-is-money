@@ -18,4 +18,10 @@ router.route('/')
 router.route('/view')
   .get(controller.getTaskByID);
 
+/**
+ * START new long running task
+ */
+router.route('/start')
+  .get(controller.createNewTask);
+
 module.exports = router;
