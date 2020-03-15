@@ -181,6 +181,12 @@ const pauseTaskByID = async (req, res) => {
         // Pause a task
         let result = await taskModel.pauseTask(taskID);
         if(result.changedRows) {
+            // Update Cache
+            let task = await cache.get(taskID);
+            task = JSON.parse(task);
+            task.isPaused = 1;
+            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+
             // Return response
             return res
             .status(200)
@@ -239,6 +245,12 @@ const resumeTaskByID = async (req, res) => {
         // Resume a task
         let result = await taskModel.resumeTask(taskID);
         if(result.changedRows) {
+            // Update Cache
+            let task = await cache.get(taskID);
+            task = JSON.parse(task);
+            task.isPaused = 0;
+            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+
             // Return response
             return res
             .status(200)
