@@ -18,14 +18,4 @@ const _pool = mysql.createPool({
   database: process.env.MYSQL_DATABASE,
 });
 
-// // Query Code Snippet
-// _pool.query('select * from managerdb.tasks', (err, results) => {
-//   if (err) {
-//     console.log(err);
-//   } else {
-//     console.log('success')
-//     console.log(results);
-//   }
-// });
-
 exports.pool = _pool;
