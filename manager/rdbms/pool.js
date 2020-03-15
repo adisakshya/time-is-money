@@ -11,11 +11,11 @@ const mysql = require('mysql');
 /**
  * Create Connection Pool
  */
-const _pool = mysql.createPool({
+const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
 });
 
-exports.pool = _pool;
+module.exports = pool;
