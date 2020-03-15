@@ -13,12 +13,12 @@ CREATE TABLE tasks (
     isPaused BOOLEAN DEFAULT false,
     isTerminated BOOLEAN DEFAULT false,
     totalRows INTEGER DEFAULT 0,
-    rowsProcessed INTEGER DEFAULT 0
+    rowstaskDataed INTEGER DEFAULT 0
 );
 
--- Big Process Table
--- For storing data from process
-CREATE TABLE process (
+-- Big taskData Table
+-- For storing data from taskData
+CREATE TABLE taskData (
     taskID VARCHAR(255),
     rowID INT(11),
     field1 VARCHAR(20), 
@@ -43,11 +43,11 @@ CREATE TABLE process (
     field20 VARCHAR(20)
 );
 
--- Indexes for table process
-ALTER TABLE `process`
+-- Indexes for table taskData
+ALTER TABLE `taskData`
   ADD PRIMARY KEY (`taskID`,`rowID`),
   ADD KEY `taskID` (`taskID`);
 
--- Constraint for table process
-ALTER TABLE `process`
-  ADD CONSTRAINT `process_ibfk_1` FOREIGN KEY (`taskID`) REFERENCES `tasks` (`id`);
+-- Constraint for table taskData
+ALTER TABLE `taskData`
+  ADD CONSTRAINT `taskData_ibfk_1` FOREIGN KEY (`taskID`) REFERENCES `tasks` (`id`);
