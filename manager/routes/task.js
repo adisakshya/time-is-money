@@ -4,12 +4,18 @@ const router = express.Router();
 /**
  * Import controller
  */
-const controller = require('../controllers/index/controller');
+const controller = require('../controllers/task/controller');
 
+/**
+ * GET details all tasks
+ */
 router.route('/')
   .get(controller.getTasks);
 
-router.route('/task')
+/**
+ * GET task details by ID
+ */
+router.route('/view')
   .get(controller.getTaskByID);
 
 module.exports = router;

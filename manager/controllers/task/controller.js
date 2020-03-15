@@ -21,12 +21,15 @@ const getTasks = async (req, res) => {
     try {
         // GET all tasks
         let tasks = taskModel.getAllTasks();
+        
+        // Return response
         return res
             .status(200)
             .json({
                 "message": tasks
             });
     } catch(error) {
+        // Report error if any
         return res
             .status(500)
             .json({
@@ -44,6 +47,8 @@ const getTaskByID = async (req, res) => {
     try {
         // GET task id from params
         const taskID = req.query.id;
+
+        // Check if taskID was provided
         if(!taskID) {
             return res
                 .status(400)
@@ -53,12 +58,15 @@ const getTaskByID = async (req, res) => {
         }
         // GET task details by ID
         let task = taskModel.getTaskByID(taskID);
+
+        // Return response
         return res
             .status(200)
             .json({
                 "message": task
             });
     } catch(error) {
+        // Report error if any
         return res
             .status(500)
             .json({

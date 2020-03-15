@@ -16,9 +16,9 @@ const pingRounter = require('./routes/ping');
 app.use('/ping', pingRounter);
 
 /**
- * Index Router
+ * Task Router
  */
-const indexRouter = require('./routes/index');
-app.use('/', indexRouter);
+const taskRouter = require('./routes/task');
+app.use('/', taskRouter);
 
 module.exports = app;
