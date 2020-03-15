@@ -8,7 +8,7 @@ SET GLOBAL max_allowed_packet = 1024 * 1024 * 256;
 -- Tasks Table
 -- For storing information about all tasks
 CREATE TABLE tasks (
-    id INT PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     iscompleted BOOLEAN DEFAULT false,
     isPaused BOOLEAN DEFAULT false,
     isTerminated BOOLEAN DEFAULT false,
@@ -19,6 +19,8 @@ CREATE TABLE tasks (
 -- Big Process Table
 -- For storing data from process
 CREATE TABLE process (
+    taskID VARCHAR(255),
+    rowID INT(11),
     field1 VARCHAR(20), 
     field2 VARCHAR(20), 
     field3 VARCHAR(20), 
@@ -40,3 +42,12 @@ CREATE TABLE process (
     field19 VARCHAR(20), 
     field20 VARCHAR(20)
 );
+
+-- Indexes for table process
+ALTER TABLE `process`
+  ADD PRIMARY KEY (`taskID`,`rowID`),
+  ADD KEY `taskID` (`taskID`);
+
+-- Constraint for table process
+ALTER TABLE `process`
+  ADD CONSTRAINT `process_ibfk_1` FOREIGN KEY (`taskID`) REFERENCES `tasks` (`id`);
