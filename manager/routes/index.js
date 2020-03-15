@@ -10,6 +10,6 @@ const controller = require('../controllers/index/controller');
  * Index Route
  */
 router.route('/')
-  .get(controller.uploadRequestHandler);
+  .get(controller.getTasks);
 
 module.exports = router;
