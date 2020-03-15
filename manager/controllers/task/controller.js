@@ -284,11 +284,76 @@ const resumeTaskByID = async (req, res) => {
     }
 }
 
+/**
+ * TERMINATE a long running task
+ * @param {Object} req 
+ * @param {Object} res 
+ */
+const terminateTaskByID = async (req, res) => {
+    try {
+        // Get taskID
+        const taskID = req.query.id;
+
+        // Check if taskID was provided
+        if(!taskID) {
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Missing parameter Task ID",
+                    "data": null,
+                    "error": true
+                });
+        }
+
+        // Resume a task
+        let result = await taskModel.terminateTask(taskID);
+        if(result.changedRows) {
+            // Update Cache
+            let task = await cache.get(taskID);
+            task = JSON.parse(task);
+            task.isTerminated = 1;
+            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+
+            // Return response
+            return res
+            .status(200)
+            .json({
+                "success": true,
+                "message": "Task terminated",
+                "data": taskID,
+                "error": false
+            });
+        }
+
+        // Return response
+        return res
+            .status(400)
+            .json({
+                "success": false,
+                "message": "Task cannot be terminated",
+                "data": taskID,
+                "error": true
+            });
+    } catch(error) {
+        // Report error if any
+        return res
+            .status(500)
+            .json({
+                "success": false,
+                "message": error.message,
+                "data": null,
+                "error": true
+            });
+    }
+}
+
 exports.getTasks = getTasks;
 exports.getTaskByID = getTaskByID;
 exports.createNewTask = createNewTask;
 exports.pauseTaskByID = pauseTaskByID;
 exports.resumeTaskByID = resumeTaskByID;
+exports.terminateTaskByID = terminateTaskByID;
 
 // exports.uploadRequestHandler = _uploadRequestHandler;
 // /**
