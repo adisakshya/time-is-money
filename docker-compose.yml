@@ -14,8 +14,10 @@ services:
         restart: on-failure
         depends_on: 
           - db
+          - redis
         links:
           - db
+          - redis
 
     db:
       image: mysql:latest
@@ -28,4 +30,10 @@ services:
       restart: on-failure
       volumes:
         - ./db:/docker-entrypoint-initdb.d/:ro
+    
+    redis:
+      build: ./redis
+      container_name: redis
+      ports:
+        - '6379:6379'
     
