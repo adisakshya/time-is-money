@@ -35,7 +35,40 @@ const getTasks = async (req, res) => {
     }
 }
 
+/**
+ * GET task by ID
+ * @param {Object} req 
+ * @param {Object} res 
+ */
+const getTaskByID = async (req, res) => {
+    try {
+        // GET task id from params
+        const taskID = req.query.id;
+        if(!taskID) {
+            return res
+                .status(400)
+                .json({
+                    "message": "Missing parameter Task ID"
+                });
+        }
+        // GET task details by ID
+        let task = taskModel.getTaskByID(taskID);
+        return res
+            .status(200)
+            .json({
+                "message": task
+            });
+    } catch(error) {
+        return res
+            .status(500)
+            .json({
+                "message": error.message
+            });
+    }
+}
+
 exports.getTasks = getTasks;
+exports.getTaskByID = getTaskByID;
 
 // exports.uploadRequestHandler = _uploadRequestHandler;
 // /**

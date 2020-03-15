@@ -6,10 +6,10 @@ const router = express.Router();
  */
 const controller = require('../controllers/index/controller');
 
-/**
- * Index Route
- */
 router.route('/')
   .get(controller.getTasks);
+
+router.route('/task')
+  .get(controller.getTaskByID);
 
 module.exports = router;
