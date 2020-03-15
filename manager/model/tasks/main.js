@@ -11,12 +11,14 @@ const pool = require('../../rdbms/pool');
  * SELECT all tasks
  */
 const getAllTasks = async () => {
-    pool.query('SELECT * FROM managerdb.tasks', (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT * FROM managerdb.tasks', (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
@@ -25,12 +27,14 @@ const getAllTasks = async () => {
  * @param {String} id 
  */
 const getTaskByID = async (id) => {
-    pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.id = ?', [id], (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.id = ?', [id], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
@@ -38,12 +42,14 @@ const getTaskByID = async (id) => {
  * SELECT all completed tasks
  */
 const getAllCompletedTasks = async () => {
-    pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.isCompleted = ?', [1], (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.isCompleted = ?', [1], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
@@ -51,12 +57,14 @@ const getAllCompletedTasks = async () => {
  * SELECT all paused tasks
  */
 const getAllPausedTasks = async () => {
-    pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.isPaused = ?', [1], (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.isPaused = ?', [1], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
@@ -64,12 +72,14 @@ const getAllPausedTasks = async () => {
  * SELECT all terminated tasks
  */
 const getAllTerminatedTasks = async () => {
-    pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.isTerminated = ?', [1], (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT * FROM managerdb.tasks as TASK where TASK.isTerminated = ?', [1], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
@@ -78,32 +88,38 @@ const getAllTerminatedTasks = async () => {
  * @param {String} id 
  */
 const insertNewTask = async (id) => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('INSERT INTO managerdb.tasks(id) values(?)', [id], function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('INSERT INTO managerdb.tasks(id) values(?)', [id], function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
                                 connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(id);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
         });
     });
 };
@@ -113,34 +129,34 @@ const insertNewTask = async (id) => {
  * @param {String} id 
  */
 const insertTaskData = async (id, fields) => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [id].concat(fields), function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
-                                connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
-        });
-    });
+    // pool.getConnection(function(err, connection) {
+    //     connection.beginTransaction(function(err) {
+    //         if (err) {                  // Transaction Error
+    //             connection.rollback(function() {
+    //                 connection.release();
+    //             });
+    //         } else {
+    //             connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [id].concat(fields), function(err, results) {
+    //                 if (err) {          // Query Error
+    //                     connection.rollback(function() {
+    //                         connection.release();
+    //                     });
+    //                 } else {
+    //                     connection.commit(function(err) {
+    //                         if (err) {
+    //                             connection.rollback(function() {
+    //                                 connection.release();
+    //                             });
+    //                         } else {
+    //                             // Success
+    //                             connection.release();
+    //                         }
+    //                     });
+    //                 }
+    //             });
+    //         }    
+    //     });
+    // });
 };
 
 /**
@@ -148,32 +164,38 @@ const insertTaskData = async (id, fields) => {
  * @param {String} id 
  */
 const deleteTaskByID = async (id) => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('DELETE FROM managerdb.tasks where id = ?', [id], function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('DELETE FROM managerdb.tasks where id = ?', [id], function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
                                 connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(id);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
         });
     });
 };
@@ -182,32 +204,38 @@ const deleteTaskByID = async (id) => {
  * DELETE all tasks
  */
 const deleteAllTasks = async () => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('DELETE FROM managerdb.tasks', function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('DELETE FROM managerdb.tasks', function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
                                 connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
         });
     });
 };
@@ -217,32 +245,38 @@ const deleteAllTasks = async () => {
  * @param {String} id 
  */
 const completeTask = async (id) => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('UPDATE managerdb.tasks as TASK SET TASK.isCompleted = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('UPDATE managerdb.tasks as TASK SET TASK.isCompleted = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
                                 connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
         });
     });
 };
@@ -252,32 +286,38 @@ const completeTask = async (id) => {
  * @param {String} id 
  */
 const pauseTask = async (id) => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('UPDATE managerdb.tasks as TASK SET TASK.isPaused = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('UPDATE managerdb.tasks as TASK SET TASK.isPaused = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
                                 connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
         });
     });
 };
@@ -287,32 +327,38 @@ const pauseTask = async (id) => {
  * @param {String} id 
  */
 const terminateTask = async (id) => {
-    pool.getConnection(function(err, connection) {
-        connection.beginTransaction(function(err) {
-            if (err) {                  // Transaction Error
-                connection.rollback(function() {
-                    connection.release();
-                });
-            } else {
-                connection.query('UPDATE managerdb.tasks as TASK SET TASK.isTerminated = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
-                    if (err) {          // Query Error
-                        connection.rollback(function() {
-                            connection.release();
-                        });
-                    } else {
-                        connection.commit(function(err) {
-                            if (err) {
-                                connection.rollback(function() {
-                                    connection.release();
-                                });
-                            } else {
-                                // Success
+    return new Promise((resolve, reject) => {
+        pool.getConnection(function(err, connection) {
+            connection.beginTransaction(function(err) {
+                if (err) {                  // Transaction Error
+                    connection.rollback(function() {
+                        connection.release();
+                        reject(err);
+                    });
+                } else {
+                    connection.query('UPDATE managerdb.tasks as TASK SET TASK.isTerminated = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
+                        if (err) {          // Query Error
+                            connection.rollback(function() {
                                 connection.release();
-                            }
-                        });
-                    }
-                });
-            }    
+                                reject(err);
+                            });
+                        } else {
+                            connection.commit(function(err) {
+                                if (err) {
+                                    connection.rollback(function() {
+                                        connection.release();
+                                        reject(err);
+                                    });
+                                } else {
+                                    // Success
+                                    connection.release();
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }    
+            });
         });
     });
 };
@@ -322,12 +368,14 @@ const terminateTask = async (id) => {
  * @param {String} id 
  */
 const getTotalRows = async (id) => {
-    pool.query('SELECT totalRows FROM managerdb.tasks as TASK where TASK.id = ?', [id], (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT totalRows FROM managerdb.tasks as TASK where TASK.id = ?', [id], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
@@ -336,12 +384,14 @@ const getTotalRows = async (id) => {
  * @param {String} id 
  */
 const getProcessedRows = async (id) => {
-    pool.query('SELECT rowsProcessed FROM managerdb.tasks as TASK where TASK.id = ?', [id], (err, results) => {
-        if (err) {
-          return err;
-        } else {
-          return results;
-        }
+    return new Promise((resolve, reject) => {
+        pool.query('SELECT rowsProcessed FROM managerdb.tasks as TASK where TASK.id = ?', [id], (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
     });
 };
 
