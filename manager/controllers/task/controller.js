@@ -278,16 +278,48 @@ const resumeTaskByID = async (req, res) => {
                 });
         }
 
+        // Update cached state
+        // Get cached state
+        let task = await cache.get(taskID);
+        if(task) {
+            // Check if task can be resumed
+            // A task can be resumed if it is not completed and is not terminated and is paused
+            if(!(task.isCompleted || task.isTerminated) && task.isPaused) {
+                // If task exists then set isPaused flag to false
+                task = JSON.parse(task);
+                task.isPaused = 0;
+
+                // Update cached state
+                let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                console.log('Resume flag set for taskID ->', taskID);
+            } else {
+                // Return completed/terminated or non-paused task cannot be terminated
+                return res
+                    .status(400)
+                    .json({
+                        "success": false,
+                        "message": "Completed/Terminated or already-running task cannot be resumed",
+                        "data": taskID,
+                        "error": true
+                    });
+            }
+        } else {                    
+            // Return task not found
+            return res
+            .status(400)
+            .json({
+                "success": false,
+                "message": "Task not found",
+                "data": taskID,
+                "error": true
+            });
+        }
+        
         // Resume a task
+        // Update flag in database
         let result = await taskModel.resumeTask(taskID);
         if(result.changedRows) {
-            // Update Cache
-            let task = await cache.get(taskID);
-            task = JSON.parse(task);
-            task.isPaused = 0;
-            let updatedTask = await cache.set(taskID, JSON.stringify(task));
-
-            // Return response
+            // Return task resumed
             return res
             .status(200)
             .json({
@@ -296,17 +328,17 @@ const resumeTaskByID = async (req, res) => {
                 "data": taskID,
                 "error": false
             });
+        } else {
+            // Return response
+            return res
+                .status(500)
+                .json({
+                    "success": false,
+                    "message": "Something went wrong",
+                    "data": taskID,
+                    "error": true
+                });
         }
-
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task cannot be resumed",
-                "data": taskID,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res
