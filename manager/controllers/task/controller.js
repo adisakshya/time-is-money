@@ -109,9 +109,48 @@ const createNewTask = async (req, res) => {
     }
 }
 
+/**
+ * PAUSE a long running task
+ * @param {Object} req 
+ * @param {Object} res 
+ */
+const pauseTaskByID = async (req, res) => {
+    try {
+        // Get taskID
+        const taskID = req.query.id;
+
+        // Check if taskID was provided
+        if(!taskID) {
+            return res
+                .status(400)
+                .json({
+                    "message": "Missing parameter Task ID"
+                });
+        }
+
+        // Pause a task
+        let result = await taskModel.pauseTask(taskID);
+
+        // Return response
+        return res
+            .status(200)
+            .json({
+                "message": result
+            });
+    } catch(error) {
+        // Report error if any
+        return res
+            .status(500)
+            .json({
+                "message": error.message
+            });
+    }
+}
+
 exports.getTasks = getTasks;
 exports.getTaskByID = getTaskByID;
 exports.createNewTask = createNewTask;
+exports.pauseTaskByID = pauseTaskByID;
 
 // exports.uploadRequestHandler = _uploadRequestHandler;
 // /**

@@ -295,7 +295,7 @@ const pauseTask = async (id) => {
                         reject(err);
                     });
                 } else {
-                    connection.query('UPDATE managerdb.tasks as TASK SET TASK.isPaused = ? WHERE TASK.id = ?;', [1, id], function(err, results) {
+                    connection.query('UPDATE managerdb.tasks as TASK SET TASK.isPaused = ? WHERE TASK.id = ? and TASK.isTerminated = ? and TASK.isCompleted = ? and TASK.isPaused = ?;', [1, id, 0, 0, 0], function(err, results) {
                         if (err) {          // Query Error
                             connection.rollback(function() {
                                 connection.release();

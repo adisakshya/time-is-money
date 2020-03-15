@@ -24,4 +24,10 @@ router.route('/view')
 router.route('/start')
   .get(controller.createNewTask);
 
+/**
+ * PAUSE a long running task
+ */
+router.route('/pause')
+  .get(controller.pauseTaskByID);
+
 module.exports = router;
