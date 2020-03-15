@@ -109,6 +109,41 @@ const insertNewTask = async (id) => {
 };
 
 /**
+ * INSERT data for running task
+ * @param {String} id 
+ */
+const insertTaskData = async (id, fields) => {
+    pool.getConnection(function(err, connection) {
+        connection.beginTransaction(function(err) {
+            if (err) {                  // Transaction Error
+                connection.rollback(function() {
+                    connection.release();
+                });
+            } else {
+                connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [id].concat(fields), function(err, results) {
+                    if (err) {          // Query Error
+                        connection.rollback(function() {
+                            connection.release();
+                        });
+                    } else {
+                        connection.commit(function(err) {
+                            if (err) {
+                                connection.rollback(function() {
+                                    connection.release();
+                                });
+                            } else {
+                                // Success
+                                connection.release();
+                            }
+                        });
+                    }
+                });
+            }    
+        });
+    });
+};
+
+/**
  * DELETE a task by ID 
  * @param {String} id 
  */
@@ -317,6 +352,7 @@ exports.getAllCompletedTasks = getAllCompletedTasks;
 exports.getAllPausedTasks = getAllPausedTasks;
 exports.getAllTerminatedTasks = getAllTerminatedTasks;
 exports.insertNewTask = insertNewTask;
+exports.insertTaskData = insertTaskData;
 exports.deleteTaskByID = deleteTaskByID;
 exports.deleteAllTasks = deleteAllTasks;
 exports.completeTask = completeTask;
