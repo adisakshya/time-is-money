@@ -392,6 +392,16 @@ const terminateTaskByID = async (req, res) => {
                 "data": taskID,
                 "error": false
             });
+        } else {
+            // Return response
+            return res
+                .status(500)
+                .json({
+                    "success": false,
+                    "message": "Something went wrong",
+                    "data": taskID,
+                    "error": true
+                });
         }
     } catch(error) {
         // Report error if any
