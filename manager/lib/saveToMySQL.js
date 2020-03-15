@@ -24,12 +24,10 @@ const executeQuery = async (connection, taskID, fields) => {
         // Execute Query
         connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [taskID].concat(fields), function(err, results) {
             if (err) {
-                connection.rollback(function() {
-                    connection.release();
-                    reject(err);
-                });
+                connection.rollback(function(err) {});
+                reject(err);
             } else {
-                resolve();
+                resolve('Row inserted');
             }
         });
     });
@@ -51,13 +49,7 @@ const saveToMySQL = async (dataArray, taskID) => {
 
                 // Rollback on transaction failure
                 if (err) {
-                    connection.rollback(function() {
-                        // Release connection
-                        connection.release();
-                        
-                        // Reject promise
-                        reject(err);
-                    });
+                    connection.rollback(function(err) {});
                 } else {
 
                     // Start insertion of rows in database
@@ -73,13 +65,12 @@ const saveToMySQL = async (dataArray, taskID) => {
                         // Check if task was terminated
                         // if yes, then rollback and resolve promise
                         if(task.isTerminated) {
-                            connection.rollback(function() {
-                                // Release connection
-                                connection.release();
-                                
-                                // Resolve promise
-                                resolve('Transaction Terminated');
+                            connection.rollback(function(err) {
+                                // console.log('Rolling Back Transaction for taskID ->', taskID);
                             });
+                            console.log('Transaction Terminated for taskID ->', taskID);
+                            resolve('Transaction Terminated');
+                            break;
                         } else if(task.isCompleted) {
                             return;
                         } else if(task.isPaused) {
@@ -97,25 +88,22 @@ const saveToMySQL = async (dataArray, taskID) => {
                         await executeQuery(connection, taskID, fields);
 
                         // Update cached state
-                        // increment processed rows by 1
-                        task.processedRows += 1;
-                        let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                        let percentageProcessed = 100 - Math.round(100*((dataArray.length - i)/dataArray.length));
+                        if(percentageProcessed % 10 === 0) {
+                            // increment processed rows by 1
+                            task.processedRows = percentageProcessed
+                            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                        }
                         // console.log('Inserted csv row in database for taskID -> ' + taskID + ' processedRow -> ' + task.processedRows.toString());
                     }
 
                     // After processing complete dataArray
                     // Commit the connection
-                    console.log('Comiting Connection');
                     connection.commit(async function(err) {
                         if (err) {
                             // Rollback on commit failure
-                            connection.rollback(function() {
-                                // Release connection
-                                connection.release();
-
-                                // Reject promise
-                                reject(err);
-                            });
+                            connection.rollback(function(err) {});
+                            reject(err);
                         } else {
                             // Success
                             
