@@ -18,6 +18,11 @@ const processHandler = require('../../lib/processHandler');
 const taskModel = require('../../model/tasks/main');
 
 /**
+ * Require cache  utility
+ */
+const cache = require('../../lib/cache');
+
+/**
  * GET all tasks
  * @param {Object} req 
  * @param {Object} res 
@@ -70,17 +75,29 @@ const getTaskByID = async (req, res) => {
                     "error": true
                 });
         }
-        // GET task details by ID
-        let task = await taskModel.getTaskByID(taskID);
 
-        // Return response
-        return res
+        // GET task details from cache
+        let task = await cache.get(taskID);
+        if(task) {
+            // Return response
+            return res
             .status(200)
             .json({
                 "success": true,
                 "message": "Task Found",
-                "data": task,
+                "data": JSON.parse(task),
                 "error": false
+            });
+        }
+        
+        // Return response
+        return res
+            .status(400)
+            .json({
+                "success": false,
+                "message": "Task Not Found",
+                "data": null,
+                "error": true
             });
     } catch(error) {
         // Report error if any
@@ -107,6 +124,15 @@ const createNewTask = async (req, res) => {
 
         // Create new task
         let result = await taskModel.insertNewTask(taskID);
+
+        // Insert task details in cache
+        let task = await cache.set(taskID, JSON.stringify({
+            'isPaused': 0,
+            'isCompleted': 0,
+            'isTerminated': 0,
+            'totalRows': 0,
+            'processedRows': 0
+        }));
 
         // Return response
         return res
