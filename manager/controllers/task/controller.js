@@ -130,12 +130,22 @@ const pauseTaskByID = async (req, res) => {
 
         // Pause a task
         let result = await taskModel.pauseTask(taskID);
+        if(result.changedRows) {
+            // Return response
+            return res
+            .status(200)
+            .json({
+                "message": 'Task Paused',
+                "id": taskID
+            });
+        }
 
         // Return response
         return res
-            .status(200)
+            .status(400)
             .json({
-                "message": result
+                "message": 'Task cannot be paused',
+                "id": taskID
             });
     } catch(error) {
         // Report error if any
@@ -168,12 +178,22 @@ const resumeTaskByID = async (req, res) => {
 
         // Resume a task
         let result = await taskModel.resumeTask(taskID);
+        if(result.changedRows) {
+            // Return response
+            return res
+            .status(200)
+            .json({
+                "message": 'Task Resumed',
+                "id": taskID
+            });
+        }
 
         // Return response
         return res
-            .status(200)
+            .status(400)
             .json({
-                "message": result
+                "message": 'Task cannot be resumed',
+                "id": taskID
             });
     } catch(error) {
         // Report error if any
