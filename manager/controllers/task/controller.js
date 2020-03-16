@@ -135,7 +135,7 @@ const createNewTask = async (req, res) => {
         }));
 
         // Start CSV parsing process
-        processHandler.processCSV('largeTestCSV.csv', taskID);
+        processHandler.processHandler('largeTestCSV.csv', taskID);
 
         // Return response
         return res
@@ -181,35 +181,58 @@ const pauseTaskByID = async (req, res) => {
                 });
         }
 
+        // Update Cache
+        let task = await cache.get(taskID);
+        task = JSON.parse(task);
+        if(task && !task.isTerminated && !task.isCompleted) {
+            task.isPaused = 1;
+            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+            console.log('Pause flag set for taskID ->', taskID);
+        } else if(task && (task.isCompleted || task.isTerminated)){
+            // Return cannot terminate already completed/terminated task
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Cannot pause already completed/terminated task",
+                    "data": taskID,
+                    "error": true
+                });
+        } else {                    
+            // Return task not found
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Task not found",
+                    "data": taskID,
+                    "error": true
+                });
+        }
+        
         // Pause a task
         let result = await taskModel.pauseTask(taskID);
         if(result.changedRows) {
-            // Update Cache
-            let task = await cache.get(taskID);
-            task = JSON.parse(task);
-            task.isPaused = 1;
-            let updatedTask = await cache.set(taskID, JSON.stringify(task));
-
             // Return response
             return res
-            .status(200)
-            .json({
-                "success": true,
-                "message": "Taks Paused",
-                "data": result,
-                "error": false
-            });
+                .status(200)
+                .json({
+                    "success": true,
+                    "message": "Taks Paused",
+                    "data": result,
+                    "error": false
+                });
+        } else {
+            // Return response
+            return res
+                .status(500)
+                .json({
+                    "success": false,
+                    "message": "Task cannot be paused",
+                    "data": taskID,
+                    "error": true
+                });
         }
-
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task cannot be paused",
-                "data": taskID,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res

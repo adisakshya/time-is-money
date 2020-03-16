@@ -1,62 +1,81 @@
 /**
- * Process handler
- * Parse the CSV file 
- * and insert the data array in MySQL database
+ * Process Handler
+ * to create a child process to handle
+ * CSV parsing and insertion in database
  */
 
 /**
- * File system and Path utility
+ * Require Child Process Module
  */
-const fs = require('fs');
-const path = require('path');
+const { spawn, exec } = require('child_process');
 
 /**
- * Require fast-csv module
+ * Require connection pool
  */
-const csv = require('fast-csv');
+const pool = require('../rdbms/pool');
 
 /**
- * Require saveToMySQL module
+ * Process Handler
+ * @param {String} csvName 
+ * @param {String} taskID 
  */
-const saveToMySQL = require('./saveToMySQL').saveToMySQL;
+const processHandler = async (csvName, taskID) => {
 
-/**
- * Parse Test CSV
+    /**
+     * Spawn Child Process
+     */
+    const process = spawn('node', ['./lib/csvParser.js', csvName, taskID]);
+    
+    /**
+     * Data from child process
+     */
+    process.stdout.on('data', (data) => {
+        console.log(`[INFO] ${taskID} -> ${data}`);
+    });
+
+    /**
+     * Error from child process
+     */
+    process.stderr.on('error', (data) => {
+        console.log(`[ERROR] ${taskID} -> ${data}`);
+    });
+
+    /**
+     * Closed child process
+     */
+    process.on('close', (code, signal) => {
+        console.log(`[CLOSED] Task -> ${taskID}`);
+    });
+
+    /**
+     * Terminated Child Process
+     */
+    process.on('exit', () => {
+        console.log(`[TERMINATED] Task -> ${taskID}`);
+    });
+
+    /**
+     * Paused Child Process
+     */
+    process.on('SIGSTOP', () => {
+        console.log(`[PAUSED] Task -> ${taskID}`);
+    });
+
+    /**
+     * Resumed Child Process
+     */
+    process.on('SIGCONT', () => {
+        console.log(`[RESUMED] Task -> ${taskID}`);
+    });
+
+}
+
+exports.processHandler = processHandler;
+
+/** 
+ * exec('kill -TERM ' + process.pid.toString());
+ * 
+ * exec('kill -STOP ' + process.pid.toString());
+ * 
+ * exec('kill -CONT ' + process.pid.toString());
  */
-const parser = async (filename, taskID) => {
-    // Data Array to store CSV information
-    let dataArray = Array();
-
-    // CREATE a readstream
-    fs.createReadStream(path.resolve(__dirname, '../utils/test_csv', filename))
-        /**
-         * Pipe
-         */
-        .pipe(csv.parse({ 
-            headers: true 
-        }))
-        
-        /**
-         * Report Error
-         */
-        .on('error', (error) => {
-            console.error(error);
-        })
-
-        /**
-         * Push CSV row data into the dataArray
-         */
-        .on('data', (row) => {
-            dataArray.push(row);
-        })
-        /**
-         * On completion of parsing
-         * log number of rows parsed
-         */
-        .on('end', async (rowCount) => {
-            console.log(`Parsed ${rowCount} rows`);
-            saveToMySQL(dataArray, taskID);
-        });
-};
-
-exports.processCSV = parser;

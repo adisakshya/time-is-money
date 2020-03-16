@@ -20,14 +20,22 @@ const pool = require('../rdbms/pool');
  * @param {Array} fields 
  */
 const executeQuery = async (connection, taskID, fields) => {
+    /**
+     * Promise to handle SQL query
+     * to insert a csv-row in database
+     */
     return new Promise((resolve, reject) => {
         // Execute Query
         connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [taskID].concat(fields), function(err, results) {
             if (err) {
+                // Rollback changes on query failure
                 connection.rollback(function(err) {
+                    // Reject promise
                     reject(err);
                 });
             } else {
+                // Resolve promise
+                // on successful insertion
                 resolve('Row inserted');
             }
         });
@@ -35,30 +43,37 @@ const executeQuery = async (connection, taskID, fields) => {
 }
 
 /**
- * Insert Data Array fields into MySQL database
+ * Process CSV dataArray 
+ * and insert every row in database
+ * @param {Array} dataArray 
+ * @param {String} taskID 
  */
 const saveToMySQL = async (dataArray, taskID) => {
 
-    // Promise to handle insertion of all rows in a CSV
+    /**
+     * Promise to handle insertion of all rows in a CSV
+     * to the database
+     */
     return new Promise((resolve, reject) => {
 
-        // Get connection from pool
+        // Get an available connection from the pool
         pool.getConnection(function(err, connection) {
 
             // Start transaction
             connection.beginTransaction(async function(err) {
 
-                // Rollback on transaction failure
                 if (err) {
+                    // Rollback on transaction failure
                     connection.rollback(function(err) {
+                        // Reject promise
                         reject(err);
                     });
                 } else {
-
                     // Start insertion of rows in database
-                    console.log('Transaction Started for taskID ' + taskID);
+                    console.log('[TRANSACTION] Started for taskID ->', taskID);
 
-                    // Iterate on every row of CSv and insert into database
+                    // Iterate on every row of CSV dataArray
+                    // and call executeQuery() to insert a row into the database
                     for(let i=0; i<dataArray.length; i++) {
 
                         // Get cached state of the task
@@ -69,7 +84,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                         // if yes, then rollback and resolve promise
                         if(task.isTerminated) {
                             connection.rollback(function(err) {
-                                console.log('Transaction Terminated for taskID ->', taskID);
+                                exec('kill -TERM ' + process.pid.toString());
                                 resolve('Transaction Terminated');
                             });
                             break;
@@ -117,7 +132,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                             // Check if task was completed
                             let task = await cache.get(taskID);
                             task = JSON.parse(task);
-                            if(task.processedRows + 1 === dataArray.length) {
+                            if(task.processedRows === dataArray.length) {
                                 task.isCompleted = 1;
                                 let updatedTask = await cache.set(taskID, JSON.stringify(task));
 
