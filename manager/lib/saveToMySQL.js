@@ -24,8 +24,9 @@ const executeQuery = async (connection, taskID, fields) => {
         // Execute Query
         connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [taskID].concat(fields), function(err, results) {
             if (err) {
-                connection.rollback(function(err) {});
-                reject(err);
+                connection.rollback(function(err) {
+                    reject(err);
+                });
             } else {
                 resolve('Row inserted');
             }
@@ -49,7 +50,9 @@ const saveToMySQL = async (dataArray, taskID) => {
 
                 // Rollback on transaction failure
                 if (err) {
-                    connection.rollback(function(err) {});
+                    connection.rollback(function(err) {
+                        reject(err);
+                    });
                 } else {
 
                     // Start insertion of rows in database
@@ -66,10 +69,9 @@ const saveToMySQL = async (dataArray, taskID) => {
                         // if yes, then rollback and resolve promise
                         if(task.isTerminated) {
                             connection.rollback(function(err) {
-                                // console.log('Rolling Back Transaction for taskID ->', taskID);
+                                console.log('Transaction Terminated for taskID ->', taskID);
+                                resolve('Transaction Terminated');
                             });
-                            console.log('Transaction Terminated for taskID ->', taskID);
-                            resolve('Transaction Terminated');
                             break;
                         } else if(task.isCompleted) {
                             return;
@@ -102,8 +104,9 @@ const saveToMySQL = async (dataArray, taskID) => {
                     connection.commit(async function(err) {
                         if (err) {
                             // Rollback on commit failure
-                            connection.rollback(function(err) {});
-                            reject(err);
+                            connection.rollback(function(err) {
+                                reject(err);
+                            });
                         } else {
                             // Success
                             
@@ -111,14 +114,21 @@ const saveToMySQL = async (dataArray, taskID) => {
                             connection.release();
                             
                             // Update Cached state of task
+                            // Check if task was completed
                             let task = await cache.get(taskID);
-                            task = JSON.parse(task);
-                            task.isCompleted = 1;
-                            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                            if(task.processedRows === 100) {
+                                task = JSON.parse(task);
+                                task.isCompleted = 1;
+                                let updatedTask = await cache.set(taskID, JSON.stringify(task));
 
-                            // Reolve promise
-                            console.log('Transaction Complete for taskID ' + taskID);
-                            resolve('Transaction Completed');
+                                // Reolve promise
+                                console.log('Transaction Complete for taskID ' + taskID);
+                                resolve('Transaction Completed');   
+                            } else {
+                                // Reolve promise
+                                console.log('Transaction was not completed for taskID ' + taskID);
+                                resolve('Transaction Not Completed');   
+                            }
                         }
                     });
                 }    
