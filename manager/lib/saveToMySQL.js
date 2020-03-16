@@ -93,7 +93,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                         let percentageProcessed = 100 - Math.round(100*((dataArray.length - i)/dataArray.length));
                         if(percentageProcessed % 10 === 0) {
                             // increment processed rows by 1
-                            task.processedRows = percentageProcessed
+                            task.processedRows = i
                             let updatedTask = await cache.set(taskID, JSON.stringify(task));
                         }
                         // console.log('Inserted csv row in database for taskID -> ' + taskID + ' processedRow -> ' + task.processedRows.toString());

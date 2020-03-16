@@ -311,46 +311,56 @@ const terminateTaskByID = async (req, res) => {
 
         // Update Cache
         let task = await cache.get(taskID);
-        if(task) {
-            task = JSON.parse(task);
+        task = JSON.parse(task);
+        if(task && !task.isTerminated && !task.isCompleted) {
             task.isTerminated = 1;
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
             console.log('Termination flag set for taskID ->', taskID);
-        } else {                    
-            // Return response
+        } else if(task && (task.isCompleted || task.isTerminated)){
+            // Return cannot terminate already completed/terminated task
             return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task not found",
-                "data": taskID,
-                "error": true
-            });
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Cannot terminate already completed/terminated task",
+                    "data": taskID,
+                    "error": true
+                });
+        } else {                    
+            // Return task not found
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Task not found",
+                    "data": taskID,
+                    "error": true
+                });
         }
 
         // Terminate a task
         let result = await taskModel.terminateTask(taskID);
         if(result.changedRows) {
-            // Return response
+            // Return task terminated
             return res
-            .status(200)
-            .json({
-                "success": true,
-                "message": "Task terminated",
-                "data": taskID,
-                "error": false
-            });
+                .status(200)
+                .json({
+                    "success": true,
+                    "message": "Task terminated",
+                    "data": taskID,
+                    "error": false
+                });
+        } else {
+            // Return bad gateway
+            return res
+                .status(502)
+                .json({
+                    "success": false,
+                    "message": "Something went wrong",
+                    "data": taskID,
+                    "error": true
+                });
         }
-
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task cannot be terminated",
-                "data": taskID,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res
