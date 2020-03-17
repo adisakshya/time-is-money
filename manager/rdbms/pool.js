@@ -3,19 +3,22 @@
  * MySQL Database
  */
 
- /**
-  * Require mysql module
-  */
+/**
+ * Require mysql module
+ */
 const mysql = require('mysql');
 
 /**
  * Create Connection Pool
  */
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
+  host: process.env.MYSQL_HOST,           // Host
+  user: process.env.MYSQL_USER,           // Username
+  password: process.env.MYSQL_PASSWORD,   // Password
+  database: process.env.MYSQL_DATABASE,   // Database name
 });
 
+/**
+ * Export connection pool
+ */
 module.exports = pool;
