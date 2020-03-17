@@ -29,13 +29,54 @@ const executeQuery = async (connection, taskID, csvData) => {
      * Promise to handle SQL query
      * to insert a csv-row in database
      */
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         let connectionIsPaused = false;
 
-        // Execute Query
+        /**
+         * Redis event listener
+         */
+        eventEmitter.addListener('set', async (key, value) => {
+            if(key !== taskID) {
+                return;
+            }
+
+            // Get task that was updated
+            let task = JSON.parse(value);
+            if(task.isTerminated) {
+                console.log('[TERMINATING] Task ->', taskID);
+                resolve('terminate');
+            } else if(task.isPaused && !connectionIsPaused) {
+                console.log('[PAUSE] Task ->', key);
+                await connection.pause();
+                connectionIsPaused = true;
+                console.log('[TERMINATING] Task in 15 seconds, if not resumed...');
+                setTimeout(async () => {
+                    let task = await cache.get(key);
+                    task = JSON.parse(task);
+                    if(!task.isPaused) {
+                        console.log('[RESUMEING] Task ->', key);
+                        await connection.resume();
+                        connectionIsPaused = false;
+                    } else {
+                        console.log('[TERMINATING] Task ->', key);
+                        resolve('terminate');
+                    }
+                }, 15000);
+            } 
+        });
+
+        /**
+         * Check task executable condition
+         */
+        let task = await cache.get(taskID);
+        eventEmitter.emit('set', taskID, task);
+
+        /**
+         * Execute Query
+         */
         connection.query('INSERT INTO managerdb.taskData(taskID, rowID, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10, field11, field12, field13, field14, field15, field16, field17, field18, field19, field20) values ?', [csvData], function(err, results) {
             if (err) {
-                console.log('Error', error);
+                console.log('Error', err);
                 // Rollback changes on query failure
                 connection.rollback(function(err) {
                     // Reject promise
@@ -46,38 +87,6 @@ const executeQuery = async (connection, taskID, csvData) => {
                 // on successful insertion
                 resolve('complete');
             }
-        });
-
-        /**
-         * Redis event listener
-         */
-        eventEmitter.addListener('set', async (key, value) => {
-            // Get task that was updated
-            let task = JSON.parse(value);
-            if(task.isTerminated) {
-                console.log('[TERMINATING] Task');
-                resolve('terminate');
-            } else if(task.isPaused && !connectionIsPaused) {
-                console.log('[PAUSED] Task ->', key);
-                await connection.pause();
-                connectionIsPaused = true;
-                console.log('[TERMINATING] Task in 15 seconds...');
-                setTimeout(async () => {
-                    let task = await cache.get(key);
-                    task = JSON.parse(task);
-                    if(!task.isPaused) {
-                        console.log('[RESUME] Task ->', key);
-                        await connection.resume();
-                        connectionIsPaused = false;
-                    } else {
-                        console.log('[TERMINATING] Task ->', key);
-                        resolve('terminate');
-                    }
-                }, 15000);
-            } else if(!task.isPaused && connectionIsPaused) {
-                console.log('[RESUME] Task ->', key);
-                await connection.resume();
-            } 
         });
     });
 }
@@ -110,7 +119,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                     });
                 } else {
                     // Start insertion of rows in database
-                    console.log('[TRANSACTION] Started');
+                    console.log('[TRANSACTION] Started Task ->', taskID);
 
                     let res = await executeQuery(connection, taskID, dataArray);
                     if(res === 'terminate') {
@@ -142,7 +151,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                 }    
             });    
         });
-    });
+    }).catch((err) => {console.log('Error:', err);});
 };
 
 exports.saveToMySQL = saveToMySQL;

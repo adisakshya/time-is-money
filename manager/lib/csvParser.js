@@ -25,6 +25,7 @@ const saveToMySQL = require('./saveToMySQL').saveToMySQL;
  * Parse Test CSV
  */
 const parser = async (filename, taskID) => {
+    console.log('[TASK] Started ->', taskID);
     
     /**
      * Data Array to store CSV information
@@ -68,7 +69,7 @@ const parser = async (filename, taskID) => {
          * log number of rows parsed
          */
         .on('end', async (rowCount) => {
-            console.log(`Parsed ${rowCount} rows`);
+            // console.log(`Parsed ${rowCount} rows`);
             saveToMySQL(dataArray, taskID);
         });
 };
