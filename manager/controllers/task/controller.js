@@ -131,7 +131,8 @@ const createNewTask = async (req, res) => {
             'isCompleted': 0,
             'isTerminated': 0,
             'totalRows': 0,
-            'processedRows': 0
+            'processedRows': 0,
+            'processID': -1,
         }));
 
         // Start CSV parsing process

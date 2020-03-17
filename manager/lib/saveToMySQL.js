@@ -70,29 +70,11 @@ const saveToMySQL = async (dataArray, taskID) => {
                     });
                 } else {
                     // Start insertion of rows in database
-                    console.log('[TRANSACTION] Started for taskID ->', taskID);
+                    console.log('[TRANSACTION] Started');
 
                     // Iterate on every row of CSV dataArray
                     // and call executeQuery() to insert a row into the database
                     for(let i=0; i<dataArray.length; i++) {
-
-                        // Get cached state of the task
-                        let task = await cache.get(taskID);
-                        task = JSON.parse(task);
-
-                        // Check if task was terminated
-                        // if yes, then rollback and resolve promise
-                        if(task.isTerminated) {
-                            connection.rollback(function(err) {
-                                exec('kill -TERM ' + process.pid.toString());
-                                resolve('Transaction Terminated');
-                            });
-                            break;
-                        } else if(task.isCompleted) {
-                            return;
-                        } else if(task.isPaused) {
-                            return;
-                        }
 
                         // Extract row fields from dataArray
                         let arr = Array();
@@ -103,13 +85,20 @@ const saveToMySQL = async (dataArray, taskID) => {
                         
                         // Execute Query
                         await executeQuery(connection, taskID, fields);
-
-                        // Update cached state
+                        
+                        // Update cached state after 10% progress
                         let percentageProcessed = 100 - Math.round(100*((dataArray.length - i)/dataArray.length));
                         if(percentageProcessed % 10 === 0) {
-                            // increment processed rows by 1
-                            task.processedRows = i+1
-                            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+                            // set processed rows by
+                            processedRows = i + 1
+                            let updatedTask = await cache.set(taskID, JSON.stringify({
+                                'isCompleted': 0,
+                                'isPaused': 0,
+                                'isTerminated': 0,
+                                'totalRows': dataArray.length,
+                                'processedRows': processedRows,
+                                'processID': process.pid
+                            }));
                         }
                         // console.log('Inserted csv row in database for taskID -> ' + taskID + ' processedRow -> ' + task.processedRows.toString());
                     }
