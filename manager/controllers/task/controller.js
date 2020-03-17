@@ -10,7 +10,7 @@ const uuid = require('uuid');
 /**
  * Require processHandler
  */
-const processHandler = require('../../lib/processHandler');
+const processHandler = require('../../lib/csvParser');
 
 /**
  * Require task model 
@@ -137,7 +137,7 @@ const createNewTask = async (req, res) => {
         }));
 
         // Start CSV parsing process
-        processHandler.processHandler('largeTestCSV.csv', taskID);
+        processHandler.process('largeTestCSV.csv', taskID);
 
         // Return response
         return res
@@ -190,6 +190,15 @@ const pauseTaskByID = async (req, res) => {
             task.isPaused = 1;
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
             console.log('Pause flag set for taskID ->', taskID);
+            // Return response
+            return res
+                .status(200)
+                .json({
+                    "success": true,
+                    "message": "Taks Paused",
+                    "data": taskID,
+                    "error": false
+                });
         } else if(task && (task.isCompleted || task.isTerminated || task.isPaused)){
             // Return cannot terminate already completed/terminated task
             return res
@@ -207,31 +216,6 @@ const pauseTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Task not found",
-                    "data": taskID,
-                    "error": true
-                });
-        }
-        
-        // Pause a task
-        // Update flag in database
-        let result = await taskModel.pauseTask(taskID);
-        if(result.changedRows) {
-            // Return response
-            return res
-                .status(200)
-                .json({
-                    "success": true,
-                    "message": "Taks Paused",
-                    "data": result,
-                    "error": false
-                });
-        } else {
-            // Return response
-            return res
-                .status(502)
-                .json({
-                    "success": false,
-                    "message": "Task cannot be paused",
                     "data": taskID,
                     "error": true
                 });
@@ -278,6 +262,15 @@ const resumeTaskByID = async (req, res) => {
             task.isPaused = 0;
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
             console.log('Resume flag set for taskID ->', taskID);
+            // Return response
+            return res
+                .status(200)
+                .json({
+                    "success": true,
+                    "message": "Task resumed",
+                    "data": taskID,
+                    "error": false
+                });
         } else if(task && (!task.isPaused || task.isCompleted || task.isTerminated)){
             // Return cannot terminate already completed/terminated task
             return res
@@ -295,30 +288,6 @@ const resumeTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Task not found",
-                    "data": taskID,
-                    "error": true
-                });
-        }
-
-        // Resume a task
-        let result = await taskModel.resumeTask(taskID);
-        if(result.changedRows) {
-            // Return response
-            return res
-            .status(200)
-            .json({
-                "success": true,
-                "message": "Task resumed",
-                "data": taskID,
-                "error": false
-            });
-        } else {
-            // Return response
-            return res
-                .status(502)
-                .json({
-                    "success": false,
-                    "message": "Task cannot be resumed",
                     "data": taskID,
                     "error": true
                 });
@@ -366,6 +335,15 @@ const terminateTaskByID = async (req, res) => {
             task.isTerminated = 1;
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
             console.log('Termination flag set for taskID ->', taskID);
+            // Return task terminated
+            return res
+                .status(200)
+                .json({
+                    "success": true,
+                    "message": "Task terminated",
+                    "data": taskID,
+                    "error": false
+                });
         } else if(task && (task.isCompleted || task.isTerminated)){
             // Return cannot terminate already completed/terminated task
             return res
@@ -383,31 +361,6 @@ const terminateTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Task not found",
-                    "data": taskID,
-                    "error": true
-                });
-        }
-
-        // Terminate a task
-        // Update flag in database
-        let result = await taskModel.terminateTask(taskID);
-        if(result.changedRows) {
-            // Return task terminated
-            return res
-                .status(200)
-                .json({
-                    "success": true,
-                    "message": "Task terminated",
-                    "data": taskID,
-                    "error": false
-                });
-        } else {
-            // Return bad gateway
-            return res
-                .status(502)
-                .json({
-                    "success": false,
-                    "message": "Something went wrong",
                     "data": taskID,
                     "error": true
                 });
