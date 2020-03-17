@@ -11,9 +11,7 @@ CREATE TABLE tasks (
     id VARCHAR(255) PRIMARY KEY,
     iscompleted BOOLEAN DEFAULT false,
     isPaused BOOLEAN DEFAULT false,
-    isTerminated BOOLEAN DEFAULT false,
-    totalRows INTEGER DEFAULT 0,
-    rowstaskDataed INTEGER DEFAULT 0
+    isTerminated BOOLEAN DEFAULT false
 );
 
 -- Big taskData Table
