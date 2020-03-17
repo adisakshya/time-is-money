@@ -10,7 +10,7 @@ const uuid = require('uuid');
 /**
  * Require processHandler
  */
-const processHandler = require('../../lib/processHandler');
+const processHandler = require('../../lib/csvParser');
 
 /**
  * Require task model 
@@ -136,7 +136,7 @@ const createNewTask = async (req, res) => {
         }));
 
         // Start CSV parsing process
-        processHandler.processHandler('largeTestCSV.csv', taskID);
+        processHandler.process('largeTestCSV.csv', taskID);
 
         // Return response
         return res

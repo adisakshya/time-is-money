@@ -65,16 +65,4 @@ const parser = async (filename, taskID) => {
         });
 };
 
-/**
- * Check if all required parameters are passed to child process
- */
-if(process.argv[2] && process.argv[3]) {
-    // Then start parsing the CSV
-    parser(process.argv[2], process.argv[3]);
-} else {
-    // report error
-    console.log('Insufficient parameters passed to child process');
-    
-    // and kill process
-    exec('kill -TERM ' + process.pid.toString());
-}
+exports.process = parser;
