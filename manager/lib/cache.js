@@ -1,4 +1,16 @@
+/**
+ * Require event emitter
+ */
+const eventEmitter = require('./eventEmitter');
+
+/**
+ * Require redis
+ */
 const redis = require("redis");
+
+/**
+ * Create redis client
+ */
 const client = redis.createClient({
     'host': 'redis',
     'port': 6379
@@ -15,6 +27,7 @@ const set = async(key, value) => {
             if(err) {
                 reject(err);     
             } else {
+                eventEmitter.emit('set', key);
                 resolve(key);
             }
         });
