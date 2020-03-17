@@ -120,7 +120,10 @@ const executeQuery = async (connection, taskID, csvData) => {
                         // Task was not resumed within 15 seconds
                         // then terminate the task
                         console.log('[TERMINATING] Task ->', key);
-
+                        
+                        // Resume connection
+                        await connection.resume();
+                        
                         // Resolve promise to terminate task
                         resolve('terminate');
                     }
@@ -208,16 +211,25 @@ const saveToMySQL = async (dataArray, taskID) => {
 
                     // If task was terminated
                     if(res === 'terminate') {
-                        // Update isTerminated flag for the task in the database
-                        let res = await taskModel.terminateTask(taskID);
-                        if(res === taskID) {
-                            console.log('[TERMINATED] Task ->', taskID);
-                        } else {
-                            console.log('[TERMINATION FAILED] Task ->', taskID);
-                            
-                            // Reject promise
-                            reject('terminate failure');
-                        }
+                        /**
+                         * Execute Query
+                         * to set isTerminated flag for the task
+                         * in the database
+                         */
+                        connection.query('UPDATE managerdb.tasks as TASK SET TASK.isTerminated = ? WHERE TASK.id = ?;', [1, taskID], function(err, results) {
+                            if (err) {
+                                // Query failes
+                                console.log('Error Terminating Task ->', taskID);
+                                console.log(err);
+                                
+                                // Rollback changes on query failure
+                                connection.rollback(function(err) {
+                                    // Reject promise
+                                    reject(err);
+                                });
+                            }
+                        });
+
                         // Perform rollback
                         console.log('[ROLLBACK] Task ->', taskID);
                         connection.rollback(function(err) {
@@ -225,6 +237,39 @@ const saveToMySQL = async (dataArray, taskID) => {
                             reject(err);
                         });
                     } else if(res === 'complete') {
+                        // Update cached state of the task
+                        // Get task current state from cache
+                        let task = await cache.get(taskID);
+                
+                        // Parse the string (VALUE) to get the JSON object
+                        // corresponding to the task state
+                        task = JSON.parse(task);
+
+                        // Set isCompleted flag to true (1)
+                        task.isCompleted = 1
+
+                        // Update the cached state of the task
+                        let updatedTask = await cache.set(taskID, JSON.stringify(task));
+
+                        /**
+                         * Execute Query
+                         * to set isCOmpleted flag for the task
+                         * in the database
+                         */
+                        connection.query('UPDATE managerdb.tasks as TASK SET TASK.isCompleted = ? WHERE TASK.id = ?;', [1, taskID], function(err, results) {
+                            if (err) {
+                                // Query failes
+                                console.log('Error Terminating Task ->', taskID);
+                                console.log(err);
+                                
+                                // Rollback changes on query failure
+                                connection.rollback(function(err) {
+                                    // Reject promise
+                                    reject(err);
+                                });
+                            }
+                        });
+                        
                         // After processing complete dataArray
                         // Commit the connection
                         connection.commit(async function(err) {
