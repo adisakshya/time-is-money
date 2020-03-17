@@ -125,7 +125,36 @@ const deleteAll = async(key) => {
     });
 };
 
+/**
+ * Get all key-value pairs from cache
+ */
+const getAll = async() => {
+    
+    /**
+     * Promise to handle get-all operation on cache
+     */
+    return new Promise(async(resolve, reject) => {
+        
+        // Auxiliary object to store key-value pairs
+        var res = {};
+
+        // Get all keys from cache
+        client.KEYS('*', async(err, keys) => {
+            
+            // For every key get corresponding value and insert into
+            // auxiliary object
+            for(let i=0; i<keys.length; i++) {
+                res[keys[i]] = await get(keys[i]);
+            }
+
+            // Resolve promise
+            resolve(res);
+        });
+    });
+};
+
 exports.set = set;
 exports.get = get;
 exports.deleteKey = deleteKey;
 exports.deleteAll = deleteAll;
+exports.getAll = getAll;

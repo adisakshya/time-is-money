@@ -30,7 +30,7 @@ const cache = require('../../lib/cache');
 const getTasks = async (req, res) => {
     try {
         // GET all tasks
-        let tasks = await taskModel.getAllTasks();
+        let tasks = await cache.getAll();
 
         // Return response
         return res
