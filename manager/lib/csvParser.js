@@ -38,8 +38,8 @@ const parser = async (filename, taskID) => {
         /**
          * Pipe
          */
-        .pipe(csv.parse({ 
-            headers: true 
+        .pipe(csv.parse({
+            headers: true
         }))
         
         /**
@@ -53,7 +53,15 @@ const parser = async (filename, taskID) => {
          * Push CSV row data into the dataArray
          */
         .on('data', (row) => {
-            dataArray.push(row);            
+            // Extract row fields from dataArray
+            let arr = Array();
+            let rowID = dataArray.length + 1;
+            arr.push(taskID);
+            arr.push(rowID);
+            let objArr = Array(row);
+            const fields = arr.concat(objArr.map(x => Object.values(x))[0]);
+
+            dataArray.push(fields);            
         })
         /**
          * On completion of parsing
