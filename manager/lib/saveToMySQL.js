@@ -19,6 +19,11 @@ const eventEmitter = require('./eventEmitter');
 const pool = require('../rdbms/pool');
 
 /**
+ * Require model
+ */
+const taskModel = require('../model/tasks/main');
+
+/**
  * Execute query to insert a csv row in the database
  * @param {Object} connection [MySQL connection object]
  * @param {String} taskID     [Task ID]
@@ -161,7 +166,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                 resolve('complete');
             }
         });
-    });
+    }).catch((alert) => {console.log('Rejection:', alter);});
 }
 
 /**
@@ -203,6 +208,16 @@ const saveToMySQL = async (dataArray, taskID) => {
 
                     // If task was terminated
                     if(res === 'terminate') {
+                        // Update isTerminated flag for the task in the database
+                        let res = await taskModel.terminateTask(taskID);
+                        if(res === taskID) {
+                            console.log('[TERMINATED] Task ->', taskID);
+                        } else {
+                            console.log('[TERMINATION FAILED] Task ->', taskID);
+                            
+                            // Reject promise
+                            reject('terminate failure');
+                        }
                         // Perform rollback
                         console.log('[ROLLBACK] Task ->', taskID);
                         connection.rollback(function(err) {
@@ -223,12 +238,17 @@ const saveToMySQL = async (dataArray, taskID) => {
                                 // Successful commit
                                 
                                 console.log('[CONNECTION] Commited Task ->', taskID);
-
-                                // Release connection
-                                connection.release();
                             }
                         });
                     }
+                    
+                    // Release connection
+                    connection.release();
+                    
+                    // Remove event listeners
+                    eventEmitter.removeAllListeners();
+
+                    resolve();
                 }    
             });    
         });
