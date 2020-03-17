@@ -27,7 +27,7 @@ const set = async(key, value) => {
             if(err) {
                 reject(err);     
             } else {
-                eventEmitter.emit('set', key);
+                eventEmitter.emit('set', key, value);
                 resolve(key);
             }
         });

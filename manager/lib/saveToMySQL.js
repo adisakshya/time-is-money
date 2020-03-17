@@ -44,31 +44,40 @@ const executeQuery = async (connection, taskID, csvData) => {
             } else {
                 // Resolve promise
                 // on successful insertion
-                resolve('Row inserted');
+                resolve('complete');
             }
         });
 
         /**
          * Redis event listener
          */
-        eventEmitter.addListener('set', async (key) => {
+        eventEmitter.addListener('set', async (key, value) => {
             // Get task that was updated
-            let task = await cache.get(key);
-            task = JSON.parse(task);
+            let task = JSON.parse(value);
             if(task.isTerminated) {
+                console.log('[TERMINATING] Task');
                 resolve('terminate');
             } else if(task.isPaused && !connectionIsPaused) {
                 console.log('[PAUSED] Task ->', key);
                 await connection.pause();
-                console.log('[TERMINATING] Task in 10 seconds...');
-                setTimeout(()=>{
-                    console.log('[TERMINATING] Task ->', key);
-                    resolve('terminate');
-                }, 10000);
+                connectionIsPaused = true;
+                console.log('[TERMINATING] Task in 15 seconds...');
+                setTimeout(async () => {
+                    let task = await cache.get(key);
+                    task = JSON.parse(task);
+                    if(!task.isPaused) {
+                        console.log('[RESUME] Task ->', key);
+                        await connection.resume();
+                        connectionIsPaused = false;
+                    } else {
+                        console.log('[TERMINATING] Task ->', key);
+                        resolve('terminate');
+                    }
+                }, 15000);
             } else if(!task.isPaused && connectionIsPaused) {
                 console.log('[RESUME] Task ->', key);
                 await connection.resume();
-            }
+            } 
         });
     });
 }
@@ -111,7 +120,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                             // Reject promise
                             reject(err);
                         });
-                    } else if(typeof(res) === typeof(connection)) {
+                    } else if(res === 'complete') {
                         // After processing complete dataArray
                         // Commit the connection
                         connection.commit(async function(err) {
@@ -123,7 +132,7 @@ const saveToMySQL = async (dataArray, taskID) => {
                             } else {
                                 // Success
                                 
-                                console.log('[CONNECTION] Commited');
+                                console.log('[CONNECTION] Commited Task ->', taskID);
 
                                 // Release connection
                                 connection.release();
