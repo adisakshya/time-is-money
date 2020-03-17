@@ -27,7 +27,6 @@ const cache = require('../../lib/cache');
  * @param {Object} req 
  * @param {Object} res 
  */
-// add cache
 const getTasks = async (req, res) => {
     try {
         // GET all tasks
@@ -39,7 +38,7 @@ const getTasks = async (req, res) => {
             .json({
                 "success": true,
                 "message": null,
-                "data": tasks,
+                "data": tasks,      // return all tasks
                 "error": false
             });
     } catch(error) {
@@ -48,7 +47,7 @@ const getTasks = async (req, res) => {
             .status(500)
             .json({
                 "success": false,
-                "message": error.message,
+                "message": error.message,   // return error message
                 "data": null,
                 "error": true
             });
@@ -71,7 +70,7 @@ const getTaskByID = async (req, res) => {
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Missing parameter Task ID",
+                    "message": "Missing parameter Task ID",     // return missing parameter message
                     "data": null,
                     "error": true
                 });
@@ -81,32 +80,35 @@ const getTaskByID = async (req, res) => {
         let task = await cache.get(taskID);
         if(task) {
             // Return response
+            // Task state is available as a JSON object,
+            // represented as string in cache
+            // So, extract task state from string using JSON.parse()
             return res
-            .status(200)
-            .json({
-                "success": true,
-                "message": "Task Found",
-                "data": JSON.parse(task),
-                "error": false
-            });
+                .status(200)
+                .json({
+                    "success": true,
+                    "message": "Task Found",
+                    "data": JSON.parse(task),
+                    "error": false
+                });
+        } else {
+            // Return response
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Task Not Found",    // return task not found
+                    "data": null,
+                    "error": true
+                });
         }
-        
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task Not Found",
-                "data": null,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res
             .status(500)
             .json({
                 "success": false,
-                "message": error.message,
+                "message": error.message,   // return error message
                 "data": null,
                 "error": true
             });
@@ -127,13 +129,11 @@ const createNewTask = async (req, res) => {
         let result = await taskModel.insertNewTask(taskID);
 
         // Insert task details in cache
+        // and initialize state of the task
         let task = await cache.set(taskID, JSON.stringify({
             'isPaused': 0,
             'isCompleted': 0,
-            'isTerminated': 0,
-            'totalRows': 0,
-            'processedRows': 0,
-            'processID': -1,
+            'isTerminated': 0
         }));
 
         // Start CSV parsing process
@@ -144,8 +144,8 @@ const createNewTask = async (req, res) => {
             .status(200)
             .json({
                 "success": true,
-                "message": "New Task Created",
-                "data": result,
+                "message": "New Task Created",  // return new task created
+                "data": result,                 // return newly created taskID
                 "error": false
             });
     } catch(error) {
@@ -154,7 +154,7 @@ const createNewTask = async (req, res) => {
             .status(500)
             .json({
                 "success": false,
-                "message": error.message,
+                "message": error.message,   // return error message
                 "data": null,
                 "error": true
             });
@@ -177,46 +177,64 @@ const pauseTaskByID = async (req, res) => {
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Missing parameter Task ID",
+                    "message": "Missing parameter Task ID",       // return missing parameter message
                     "data": null,
                     "error": true
                 });
         }
 
         // Update Cache
+
+        // Get task by ID from cache
         let task = await cache.get(taskID);
+
+        // Task state is available as a JSON object,
+        // represented as string in cache
+        // So, extract task state from string using JSON.parse()
         task = JSON.parse(task);
+
+        // Check if task can be paused
+        // A task can be paused if it is 
+        //      1. present in the cache
+        //      2. not terminated
+        //      3. not completed
+        //      4. not already paused
         if(task && !task.isTerminated && !task.isCompleted && !task.isPaused) {
+            // If task can be paused
+            // update state of task and set isPaused to true (1)
             task.isPaused = 1;
+
+            // Update task state in cache
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
-            console.log('Pause flag set for taskID ->', taskID);
+
             // Return response
             return res
                 .status(200)
                 .json({
                     "success": true,
-                    "message": "Taks Paused",
-                    "data": taskID,
+                    "message": "Taks Paused",       // return task paused
+                    "data": taskID,                 // return taskID
                     "error": false
                 });
-        } else if(task && (task.isCompleted || task.isTerminated || task.isPaused)){
-            // Return cannot terminate already completed/terminated task
+        } else if(task && (task.isCompleted || task.isTerminated || task.isPaused)) {
+            // A task cannot be paused if it doesn't follow above conditions
+            // Return response
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Cannot pause already paused/completed/terminated task",
-                    "data": taskID,
+                    "message": "Cannot pause already paused/completed/terminated task",     // return task cannot be paused
+                    "data": taskID,                                                         // return taskID
                     "error": true
                 });
         } else {                    
-            // Return task not found
+            // Return response
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Task not found",
-                    "data": taskID,
+                    "message": "Task not found",        // return task not found
+                    "data": taskID,                     // return taskID
                     "error": true
                 });
         }
@@ -226,7 +244,7 @@ const pauseTaskByID = async (req, res) => {
             .status(500)
             .json({
                 "success": false,
-                "message": error.message,
+                "message": error.message,       // return error message
                 "data": null,
                 "error": true
             });
@@ -249,46 +267,64 @@ const resumeTaskByID = async (req, res) => {
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Missing parameter Task ID",
+                    "message": "Missing parameter Task ID",       // return missing parameter message
                     "data": null,
                     "error": true
                 });
         }
 
         // Update Cache
+
+        // Get task by ID from cache
         let task = await cache.get(taskID);
+        
+        // Task state is available as a JSON object,
+        // represented as string in cache
+        // So, extract task state from string using JSON.parse()
         task = JSON.parse(task);
+        
+        // Check if task can be resumed
+        // A task can be resumed if it is 
+        //      1. present in the cache
+        //      2. is paused
+        //      3. not terminated
+        //      4. not completed
         if(task && task.isPaused && !task.isTerminated && !task.isCompleted) {
+            // If task can be resumed
+            // update state of task and set isPaused to false (0)
             task.isPaused = 0;
+            
+            // Update task state in cache
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
-            console.log('Resume flag set for taskID ->', taskID);
+            
             // Return response
             return res
                 .status(200)
                 .json({
                     "success": true,
-                    "message": "Task resumed",
-                    "data": taskID,
+                    "message": "Task resumed",       // return task resumed
+                    "data": taskID,                 // return taskID
                     "error": false
                 });
         } else if(task && (!task.isPaused || task.isCompleted || task.isTerminated)){
-            // Return cannot terminate already completed/terminated task
+            // A task cannot be resumed if it doesn't follow above conditions
+            // Return response
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Cannot resume already active/completed/terminated task",
-                    "data": taskID,
+                    "message": "Cannot resume already active/completed/terminated task",   // return task cannot be resumed
+                    "data": taskID,                                                        // return taskID
                     "error": true
                 });
         } else {                    
-            // Return task not found
+            // Return response
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Task not found",
-                    "data": taskID,
+                    "message": "Task not found",        // return task not found
+                    "data": taskID,                     // return taskID
                     "error": true
                 });
         }
@@ -298,7 +334,7 @@ const resumeTaskByID = async (req, res) => {
             .status(500)
             .json({
                 "success": false,
-                "message": error.message,
+                "message": error.message,       // return error message
                 "data": null,
                 "error": true
             });
@@ -321,47 +357,63 @@ const terminateTaskByID = async (req, res) => {
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Missing parameter Task ID",
+                    "message": "Missing parameter Task ID",       // return missing parameter message
                     "data": null,
                     "error": true
                 });
         }
 
         // Update cached state
-        // Get cached state
+        
+        // Get task by ID from cache
         let task = await cache.get(taskID);
+        
+        // Task state is available as a JSON object,
+        // represented as string in cache
+        // So, extract task state from string using JSON.parse()
         task = JSON.parse(task);
+        
+        // Check if task can be terminated
+        // A task can be terminated if it is 
+        //      1. present in the cache
+        //      2. not terminated
+        //      3. not completed
         if(task && !task.isTerminated && !task.isCompleted) {
+            // If task can be terminated
+            // update state of task and set isTerminated to true (1)
             task.isTerminated = 1;
+            
+            // Update task state in cache
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
-            console.log('Termination flag set for taskID ->', taskID);
-            // Return task terminated
+            
+            // Return response
             return res
                 .status(200)
                 .json({
                     "success": true,
-                    "message": "Task terminated",
-                    "data": taskID,
+                    "message": "Task terminated",       // return task terminated
+                    "data": taskID,                     // return taskID
                     "error": false
                 });
         } else if(task && (task.isCompleted || task.isTerminated)){
-            // Return cannot terminate already completed/terminated task
+            // A task cannot be terminated if it doesn't follow above conditions
+            // Return response
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Cannot terminate already completed/terminated task",
-                    "data": taskID,
+                    "message": "Cannot terminate already completed/terminated task",        // return task cannot be terminated
+                    "data": taskID,                                                         // return taskID
                     "error": true
                 });
         } else {                    
-            // Return task not found
+            // Return response
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Task not found",
-                    "data": taskID,
+                    "message": "Task not found",        // return task not found
+                    "data": taskID,                     // return taskID
                     "error": true
                 });
         }
@@ -371,7 +423,7 @@ const terminateTaskByID = async (req, res) => {
             .status(500)
             .json({
                 "success": false,
-                "message": error.message,
+                "message": error.message,       // return error message
                 "data": null,
                 "error": true
             });
