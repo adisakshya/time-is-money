@@ -144,7 +144,8 @@ const getAll = async() => {
             // For every key get corresponding value and insert into
             // auxiliary object
             for(let i=0; i<keys.length; i++) {
-                res[keys[i]] = await get(keys[i]);
+                let value = await get(keys[i]);
+                res[keys[i]] = JSON.parse(value);
             }
 
             // Resolve promise
