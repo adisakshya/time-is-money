@@ -184,17 +184,17 @@ const pauseTaskByID = async (req, res) => {
         // Update Cache
         let task = await cache.get(taskID);
         task = JSON.parse(task);
-        if(task && !task.isTerminated && !task.isCompleted) {
+        if(task && !task.isTerminated && !task.isCompleted && !task.isPaused) {
             task.isPaused = 1;
             let updatedTask = await cache.set(taskID, JSON.stringify(task));
             console.log('Pause flag set for taskID ->', taskID);
-        } else if(task && (task.isCompleted || task.isTerminated)){
+        } else if(task && (task.isCompleted || task.isTerminated || task.isPaused)){
             // Return cannot terminate already completed/terminated task
             return res
                 .status(400)
                 .json({
                     "success": false,
-                    "message": "Cannot pause already completed/terminated task",
+                    "message": "Cannot pause already paused/completed/terminated task",
                     "data": taskID,
                     "error": true
                 });
@@ -225,7 +225,7 @@ const pauseTaskByID = async (req, res) => {
         } else {
             // Return response
             return res
-                .status(500)
+                .status(502)
                 .json({
                     "success": false,
                     "message": "Task cannot be paused",
@@ -268,15 +268,38 @@ const resumeTaskByID = async (req, res) => {
                 });
         }
 
+        // Update Cache
+        let task = await cache.get(taskID);
+        task = JSON.parse(task);
+        if(task && task.isPaused && !task.isTerminated && !task.isCompleted) {
+            task.isPaused = 0;
+            let updatedTask = await cache.set(taskID, JSON.stringify(task));
+            console.log('Resume flag set for taskID ->', taskID);
+        } else if(task && (!task.isPaused || task.isCompleted || task.isTerminated)){
+            // Return cannot terminate already completed/terminated task
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Cannot resume already active/completed/terminated task",
+                    "data": taskID,
+                    "error": true
+                });
+        } else {                    
+            // Return task not found
+            return res
+                .status(400)
+                .json({
+                    "success": false,
+                    "message": "Task not found",
+                    "data": taskID,
+                    "error": true
+                });
+        }
+
         // Resume a task
         let result = await taskModel.resumeTask(taskID);
         if(result.changedRows) {
-            // Update Cache
-            let task = await cache.get(taskID);
-            task = JSON.parse(task);
-            task.isPaused = 0;
-            let updatedTask = await cache.set(taskID, JSON.stringify(task));
-
             // Return response
             return res
             .status(200)
@@ -286,17 +309,17 @@ const resumeTaskByID = async (req, res) => {
                 "data": taskID,
                 "error": false
             });
+        } else {
+            // Return response
+            return res
+                .status(502)
+                .json({
+                    "success": false,
+                    "message": "Task cannot be resumed",
+                    "data": taskID,
+                    "error": true
+                });
         }
-
-        // Return response
-        return res
-            .status(400)
-            .json({
-                "success": false,
-                "message": "Task cannot be resumed",
-                "data": taskID,
-                "error": true
-            });
     } catch(error) {
         // Report error if any
         return res
