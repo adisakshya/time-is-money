@@ -23,6 +23,9 @@ const saveToMySQL = require('./saveToMySQL').saveToMySQL;
 
 /**
  * Parse Test CSV
+ * Already saved on disk
+ * @param {String} filename [Filename of test CSV]
+ * @param {String} taskID   [Task ID]
  */
 const parser = async (filename, taskID) => {
 
