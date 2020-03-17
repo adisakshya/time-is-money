@@ -12,22 +12,35 @@ const redis = require("redis");
  * Create redis client
  */
 const client = redis.createClient({
-    'host': 'redis',
-    'port': 6379
+    'host': 'redis',                    // Host
+    'port': 6379                        // Port
 });
 
 /**
  * SET key-value in cache
- * @param {*} key 
- * @param {*} value 
+ * @param {String} key 
+ * @param {String} value 
  */
 const set = async(key, value) => {
+
+    /**
+     * Promise to handle set operation on cache
+     */
     return new Promise((resolve, reject) => {
+
+        /**
+         * Set key-value pair in cache
+         */
         client.set(key, value, (err) => {
             if(err) {
+                // Reject promise
                 reject(err);     
             } else {
+                // Emit 'set' event
+                // Utilized to perform pause/resume/terminate operation
                 eventEmitter.emit('set', key, value);
+
+                // Resolve promise
                 resolve(key);
             }
         });
@@ -36,14 +49,24 @@ const set = async(key, value) => {
 
 /**
  * GET key-value from cache
- * @param {*} key 
+ * @param {String} key 
  */
 const get = async(key) => {
+
+    /**
+     * Promise to handle get operation on cache
+     */
     return new Promise((resolve, reject) => {
+
+        /**
+         * Get key-value pair from cache
+         */
         client.get(key, (err, value)=> {
             if(err) {
+                // Reject promise
                 reject(err);
             } else {
+                // Resolve promise
                 resolve(value);
             }
         });
@@ -52,14 +75,24 @@ const get = async(key) => {
 
 /**
  * DELETE key-value from cache
- * @param {*} key 
+ * @param {String} key 
  */
 const deleteKey = async(key) => {
-    return new Promise((resolve, reject) => {   
+
+    /**
+     * Promise to handle delete operation on cache
+     */
+    return new Promise((resolve, reject) => { 
+        
+        /**
+         * Delete key-value pair from cache
+         */
         client.del(key, cb = (err, success) => {
             if(err) {
+                // Reject promise
                 reject(err);
             } else {
+                // Resolve promise
                 resolve(success);
             }
         });
@@ -68,14 +101,24 @@ const deleteKey = async(key) => {
 
 /**
  * DELETE all key-value from cache
- * @param {*} key 
+ * @param {String} key 
  */
 const deleteAll = async(key) => {
+    
+    /**
+     * Promise to handle delete-all operation on cache
+     */
     return new Promise((resolve, reject) => {   
+        
+        /**
+         * Delete all key-value pair from cache
+         */
         client.flushall((err, success) => {
             if(err) {
+                // Reject promise
                 reject(err);
             } else {
+                // Resolve promise
                 resolve(success);
             }
         });
