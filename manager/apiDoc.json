@@ -1,0 +1,11 @@
+{
+    "name": "Manager API Documentation",
+    "version": "1.0.0",
+    "description": "This is the documentation for the manager api service",
+    "title": "Documentation | Manager API",
+    "url":"http://<domain:port>",
+    "template": {
+        "withCompare": true,
+        "withGenerator": true
+    }
+  }
