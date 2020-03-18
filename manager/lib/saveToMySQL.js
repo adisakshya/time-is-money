@@ -69,9 +69,9 @@ const executeQuery = async (connection, taskID, csvData) => {
             let task = JSON.parse(value);
 
             // Check if task was updated to terminated
-            if(task.isTerminated) {
+            if(task.isTerminated && !task.isPaused) {
                 // Yes
-                console.log('[TERMINATING] Task ->', taskID);
+                console.log('[TERMINATING] Task');
                 
                 // Resolve promise to terminate the task
                 resolve('terminate');
@@ -79,7 +79,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                 // If task was updated to be paused
                 // but the connection is still active
                 // then pause the task
-                console.log('[PAUSE] Task ->', key);
+                console.log('[PAUSE] Task');
 
                 // Pause connection
                 await connection.pause();
@@ -109,7 +109,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                     // task.isResumed = ~task.isPaused
                     if(!task.isPaused && !task.isTerminated) {
                         // Resume Task
-                        console.log('[RESUMEING] Task ->', key);
+                        console.log('[RESUMEING] Task');
                         
                         // Resume connection
                         await connection.resume();
@@ -119,7 +119,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                     } else {
                         // Task was not resumed within 15 seconds
                         // then terminate the task
-                        console.log('[TERMINATING] Task ->', key);
+                        console.log('[TERMINATING] On pause timeout');
 
                         // Resume connection
                         await connection.resume();
@@ -159,6 +159,9 @@ const executeQuery = async (connection, taskID, csvData) => {
                 
                 // Rollback changes on query failure
                 connection.rollback(function(err) {
+                    // Release connection
+                    connection.release();
+                                    
                     // Reject promise
                     reject(err);
                 });
@@ -169,7 +172,11 @@ const executeQuery = async (connection, taskID, csvData) => {
                 resolve('complete');
             }
         });
-    }).catch((alert) => {console.log('Rejection:', alert);});
+    }).catch((alert) => {
+        console.log('Error:', alert);
+        // and kill process
+        exec('kill -TERM ' + process.pid.toString());
+    });
 }
 
 /**
@@ -198,6 +205,9 @@ const executeTerminateQuery = async (connection, taskID) => {
                 
                 // Rollback changes on query failure
                 connection.rollback(function(err) {
+                    // Release connection
+                    connection.release();
+                                    
                     // Reject promise
                     reject(err);
                 });
@@ -211,8 +221,8 @@ const executeTerminateQuery = async (connection, taskID) => {
 /**
  * Process CSV dataArray 
  * and insert every row in database
- * @param {Array} dataArray 
- * @param {String} taskID 
+ * @param {Array} dataArray [Data array containing csv data]
+ * @param {String} taskID [Task ID]
  */
 const saveToMySQL = async (dataArray, taskID) => {
 
@@ -235,12 +245,15 @@ const saveToMySQL = async (dataArray, taskID) => {
                 if (err) {
                     // perform rollback on transaction failure
                     connection.rollback(function(err) {
+                        // Release connection
+                        connection.release();
+                                    
                         // Reject promise
                         reject(err);
                     });
                 } else {
                     // Initialization of transaction complete
-                    console.log('[TRANSACTION] Started Task ->', taskID);
+                    console.log('[TRANSACTION] Started');
 
                     // Execute query to insert CSV information in the database
                     let res = await executeQuery(connection, taskID, dataArray);
@@ -250,17 +263,15 @@ const saveToMySQL = async (dataArray, taskID) => {
                         let termination = await executeTerminateQuery(connection, taskID);
                         if(termination === taskID) {
                             // Perform rollback
-                            console.log('[ROLLBACK] Task ->', taskID);
+                            console.log('[ROLLBACK]');
                             connection.rollback(function(err) {
+                                // Release connection
+                                connection.release();
+                                    
                                 // Reject promise
                                 reject(err);
                             });
                         }
-                        // Update cache
-                        let task = await cache.get(taskID);
-                        task = JSON.parse(task);
-                        task.isTerminated = 1;
-                        let updatedTask = await cache.set(taskID, JSON.stringify(task));
                     } else if(res === 'complete') {
                         // Update cached state of the task
                         // Get task current state from cache
@@ -284,11 +295,14 @@ const saveToMySQL = async (dataArray, taskID) => {
                         connection.query('UPDATE managerdb.tasks as TASK SET TASK.isCompleted = ? WHERE TASK.id = ?;', [1, taskID], function(err, results) {
                             if (err) {
                                 // Query failes
-                                console.log('Error Terminating Task ->', taskID);
+                                console.log('Error Terminating Task');
                                 console.log(err);
                                 
                                 // Rollback changes on query failure
                                 connection.rollback(function(err) {
+                                    // Release connection
+                                    connection.release();
+                                    
                                     // Reject promise
                                     reject(err);
                                 });
@@ -301,19 +315,22 @@ const saveToMySQL = async (dataArray, taskID) => {
                             if (err) {
                                 // Rollback on commit failure
                                 connection.rollback(function(err) {
+                                    // Release connection
+                                    connection.release();
+
                                     // Reject promise
                                     reject(err);
                                 });
                             } else {
                                 // Successful commit
                                 
-                                console.log('[CONNECTION] Commited Task ->', taskID);
+                                // Release connection
+                                connection.release();    
+                                
+                                console.log('[CONNECTION] Commited');
                             }
                         });
                     }
-                    
-                    // Release connection
-                    connection.release();
                     
                     // Remove event listeners
                     eventEmitter.removeAllListeners();
@@ -323,7 +340,11 @@ const saveToMySQL = async (dataArray, taskID) => {
             });    
         });
     // Catch error rejected by promise
-    }).catch((err) => {console.log('Error:', err);});
+    }).catch((err) => {
+        console.log('Error:', err);
+        // and kill process
+        exec('kill -TERM ' + process.pid.toString());
+    });
 };
 
 exports.saveToMySQL = saveToMySQL;

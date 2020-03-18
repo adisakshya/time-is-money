@@ -32,7 +32,7 @@ const parser = async (filename, taskID) => {
     /**
      * Mark initialization of the task
      */
-    console.log('[TASK] Started ->', taskID);
+    console.log('[TASK] Started');
     
     /**
      * Data Array to store CSV information
@@ -57,6 +57,8 @@ const parser = async (filename, taskID) => {
          */
         .on('error', (error) => {
             console.error(error);
+            // and kill process
+            exec('kill -TERM ' + process.pid.toString());
         })
 
         /**
@@ -112,4 +114,16 @@ const parser = async (filename, taskID) => {
         });
 };
 
-exports.process = parser;
+/**
+ * Check if all required parameters are passed to child process
+ */
+if(process.argv[2] && process.argv[3]) {
+    // Then start parsing the CSV
+    parser(process.argv[2], process.argv[3]);
+} else {
+    // report error
+    console.log('Insufficient parameters passed to child process');
+    
+    // and kill process
+    exec('kill -TERM ' + process.pid.toString());
+}
