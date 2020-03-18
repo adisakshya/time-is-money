@@ -24,6 +24,7 @@ const cache = require('../../lib/cache');
 
 /**
  * @api {get} /api/v1/task show all tasks
+ * @apiVersion 1.0.0
  * @apiName show all tasks
  * @apiGroup all
  *
@@ -82,6 +83,7 @@ const getTasks = async (req, res) => {
 
 /**
  * @api {get} /api/v1/task/view view task by id
+ * @apiVersion 1.0.0
  * @apiName view task by id
  * @apiGroup all
  *
@@ -163,8 +165,11 @@ const getTaskByID = async (req, res) => {
 
 /**
  * @api {get} /api/v1/task/start start a long running task
+ * @apiVersion 1.0.0
  * @apiName start a long running task
  * @apiGroup all
+ * 
+ * @apiParamExample {String} request-example
  * 
  * curl http://<domain:port>/api/v1/task/start
  * 
@@ -227,6 +232,7 @@ const createNewTask = async (req, res) => {
 
 /**
  * @api {get} /api/v1/task/pause pause long running task by id
+ * @apiVersion 1.0.0
  * @apiName pause long running task by id
  * @apiGroup all
  *
@@ -337,6 +343,7 @@ const pauseTaskByID = async (req, res) => {
 
 /**
  * @api {get} /api/v1/task/resume resume a paused long running task by id
+ * @apiVersion 1.0.0
  * @apiName resume a paused long running task by id
  * @apiGroup all
  *
@@ -447,6 +454,7 @@ const resumeTaskByID = async (req, res) => {
 
 /**
  * @api {get} /api/v1/task/terminate terminate a long running task by id
+ * @apiVersion 1.0.0
  * @apiName terminate a long running task by id
  * @apiGroup all
  *
