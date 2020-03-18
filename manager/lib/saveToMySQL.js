@@ -169,7 +169,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                 resolve('complete');
             }
         });
-    }).catch((alert) => {console.log('Rejection:', alter);});
+    }).catch((alert) => {console.log('Rejection:', alert);});
 }
 
 /**
