@@ -88,7 +88,7 @@ const getTaskByID = async (req, res) => {
                 .json({
                     "success": true,
                     "message": "Task Found",
-                    "data": JSON.parse(task),
+                    "data": JSON.parse(task),   // return task state
                     "error": false
                 });
         } else {
@@ -130,11 +130,13 @@ const createNewTask = async (req, res) => {
 
         // Insert task details in cache
         // and initialize state of the task
-        let task = await cache.set(taskID, JSON.stringify({
+        let state = {
+            'taskID': taskID,
             'isPaused': 0,
             'isCompleted': 0,
             'isTerminated': 0
-        }));
+        };
+        let task = await cache.set(taskID, JSON.stringify(state));
 
         // Start CSV parsing process
         processHandler.process('largeTestCSV.csv', taskID);
@@ -145,7 +147,7 @@ const createNewTask = async (req, res) => {
             .json({
                 "success": true,
                 "message": "New Task Created",  // return new task created
-                "data": result,                 // return newly created taskID
+                "data": state,                  // return newly created task state
                 "error": false
             });
     } catch(error) {
@@ -213,7 +215,7 @@ const pauseTaskByID = async (req, res) => {
                 .json({
                     "success": true,
                     "message": "Taks Paused",       // return task paused
-                    "data": taskID,                 // return taskID
+                    "data": task,                 // return task state
                     "error": false
                 });
         } else if(task && (task.isCompleted || task.isTerminated || task.isPaused)) {
@@ -224,7 +226,7 @@ const pauseTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Cannot pause already paused/completed/terminated task",     // return task cannot be paused
-                    "data": taskID,                                                         // return taskID
+                    "data": task,                                                         // return taskID
                     "error": true
                 });
         } else {                    
@@ -234,7 +236,7 @@ const pauseTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Task not found",        // return task not found
-                    "data": taskID,                     // return taskID
+                    "data": null,                       // return null
                     "error": true
                 });
         }
@@ -303,7 +305,7 @@ const resumeTaskByID = async (req, res) => {
                 .json({
                     "success": true,
                     "message": "Task resumed",       // return task resumed
-                    "data": taskID,                 // return taskID
+                    "data": task,                 // return task state
                     "error": false
                 });
         } else if(task && (!task.isPaused || task.isCompleted || task.isTerminated)){
@@ -314,7 +316,7 @@ const resumeTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Cannot resume already active/completed/terminated task",   // return task cannot be resumed
-                    "data": taskID,                                                        // return taskID
+                    "data": task,                                                        // return task state
                     "error": true
                 });
         } else {                    
@@ -324,7 +326,7 @@ const resumeTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Task not found",        // return task not found
-                    "data": taskID,                     // return taskID
+                    "data": null,                     // return null
                     "error": true
                 });
         }
@@ -392,7 +394,7 @@ const terminateTaskByID = async (req, res) => {
                 .json({
                     "success": true,
                     "message": "Task terminated",       // return task terminated
-                    "data": taskID,                     // return taskID
+                    "data": task,                     // return task state
                     "error": false
                 });
         } else if(task && (task.isCompleted || task.isTerminated)){
@@ -403,7 +405,7 @@ const terminateTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Cannot terminate already completed/terminated task",        // return task cannot be terminated
-                    "data": taskID,                                                         // return taskID
+                    "data": task,                                                         // return task state
                     "error": true
                 });
         } else {                    
@@ -413,7 +415,7 @@ const terminateTaskByID = async (req, res) => {
                 .json({
                     "success": false,
                     "message": "Task not found",        // return task not found
-                    "data": taskID,                     // return taskID
+                    "data": null,                     // return null
                     "error": true
                 });
         }
