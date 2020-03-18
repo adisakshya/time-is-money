@@ -23,9 +23,35 @@ const taskModel = require('../../model/tasks/main');
 const cache = require('../../lib/cache');
 
 /**
- * GET all tasks
- * @param {Object} req 
- * @param {Object} res 
+ * @api {get} /api/v1/task show all tasks
+ * @apiName show all tasks
+ * @apiGroup all
+ *
+ * @apiParamExample {String} request-example
+ * 
+ * curl http://<domain:port>/api/v1/task
+ * 
+ * @apiParamExample {json} response-example
+ * 
+ * {
+ *      "success": true,
+ *      "message": null,
+ *      "data": {
+ *                  "taskID1": {
+ *                                  "id": "taskID1",
+ *                                  "isPaused": 0,
+ *                                  "isCompleted": 1,
+ *                                  "isTerminated": 0
+ *                            },
+ *                  "taskID2": {
+ *                                  "id": "taskID2",
+ *                                  "isPaused": 1,
+ *                                  "isCompleted": 0,
+ *                                  "isTerminated": 0
+ *                            }
+ *              },
+ *      "error": false
+ * }
  */
 const getTasks = async (req, res) => {
     try {
@@ -55,9 +81,29 @@ const getTasks = async (req, res) => {
 }
 
 /**
- * GET task by ID
- * @param {Object} req 
- * @param {Object} res 
+ * @api {get} /api/v1/task/view view task by id
+ * @apiName view task by id
+ * @apiGroup all
+ *
+ * @apiParam {String} id Task ID
+ * 
+ * @apiParamExample {String} request-example
+ * 
+ * curl http://<domain:port>/api/v1/task/view?id=taskID
+ * 
+ * @apiParamExample {json} response-example
+ * 
+ * {
+ *      "success": true,
+ *      "message": "Task Found",
+ *      "data": {    
+ *                  "id": "taskID",
+ *                  "isPaused": 0,
+ *                  "isCompleted": 1,
+ *                  "isTerminated": 0   
+ *              },
+ *      "error": false
+ * }
  */
 const getTaskByID = async (req, res) => {
     try {
@@ -116,9 +162,25 @@ const getTaskByID = async (req, res) => {
 }
 
 /**
- * CREATE new long running task
- * @param {Object} req 
- * @param {Object} res 
+ * @api {get} /api/v1/task/start start a long running task
+ * @apiName start a long running task
+ * @apiGroup all
+ * 
+ * curl http://<domain:port>/api/v1/task/start
+ * 
+ * @apiParamExample {json} response-example
+ * 
+ * {
+ *      "success": true,
+ *      "message": New Task Created,
+ *      "data": {
+ *                  "id": "taskID",
+ *                  "isPaused": 0,
+ *                  "isCompleted": 0,
+ *                  "isTerminated": 0
+ *              },
+ *      "error": false
+ * }
  */
 const createNewTask = async (req, res) => {
     try {
@@ -131,7 +193,7 @@ const createNewTask = async (req, res) => {
         // Insert task details in cache
         // and initialize state of the task
         let state = {
-            'taskID': taskID,
+            'id': taskID,
             'isPaused': 0,
             'isCompleted': 0,
             'isTerminated': 0
@@ -164,9 +226,29 @@ const createNewTask = async (req, res) => {
 }
 
 /**
- * PAUSE a long running task
- * @param {Object} req 
- * @param {Object} res 
+ * @api {get} /api/v1/task/pause pause long running task by id
+ * @apiName pause long running task by id
+ * @apiGroup all
+ *
+ * @apiParam {String} id Task ID
+ * 
+ * @apiParamExample {String} request-example
+ * 
+ * curl http://<domain:port>/api/v1/task/pause?id=taskID
+ * 
+ * @apiParamExample {json} response-example
+ * 
+ * {
+ *      "success": true,
+ *      "message": "Taks Paused",
+ *      "data": {    
+ *                  "id": "taskID",
+ *                  "isPaused": 1,
+ *                  "isCompleted": 0,
+ *                  "isTerminated": 0   
+ *              },
+ *      "error": false
+ * }
  */
 const pauseTaskByID = async (req, res) => {
     try {
@@ -254,9 +336,29 @@ const pauseTaskByID = async (req, res) => {
 }
 
 /**
- * RESUME a long running task
- * @param {Object} req 
- * @param {Object} res 
+ * @api {get} /api/v1/task/resume resume a paused long running task by id
+ * @apiName resume a paused long running task by id
+ * @apiGroup all
+ *
+ * @apiParam {String} id Task ID
+ * 
+ * @apiParamExample {String} request-example
+ * 
+ * curl http://<domain:port>/api/v1/task/resume?id=taskID
+ * 
+ * @apiParamExample {json} response-example
+ * 
+ * {
+ *      "success": true,
+ *      "message": "Task resumed",
+ *      "data": {    
+ *                  "id": "taskID",
+ *                  "isPaused": 0,
+ *                  "isCompleted": 0,
+ *                  "isTerminated": 0   
+ *              },
+ *      "error": false
+ * }
  */
 const resumeTaskByID = async (req, res) => {
     try {
@@ -344,9 +446,29 @@ const resumeTaskByID = async (req, res) => {
 }
 
 /**
- * TERMINATE a long running task
- * @param {Object} req 
- * @param {Object} res 
+ * @api {get} /api/v1/task/terminate terminate a long running task by id
+ * @apiName terminate a long running task by id
+ * @apiGroup all
+ *
+ * @apiParam {String} id Task ID
+ * 
+ * @apiParamExample {String} request-example
+ * 
+ * curl http://<domain:port>/api/v1/task/terminate?id=taskID
+ * 
+ * @apiParamExample {json} response-example
+ * 
+ * {
+ *      "success": true,
+ *      "message": "Task terminated",
+ *      "data": {    
+ *                  "id": "taskID",
+ *                  "isPaused": 0,
+ *                  "isCompleted": 0,
+ *                  "isTerminated": 1   
+ *              },
+ *      "error": false
+ * }
  */
 const terminateTaskByID = async (req, res) => {
     try {
