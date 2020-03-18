@@ -173,11 +173,12 @@ const executeQuery = async (connection, taskID, csvData) => {
             }
         });
     }).catch((alert) => {
+        // Report rejection reason
         console.log('Error:', alert);
         // and kill process
-        exec('kill -TERM ' + process.pid.toString());
+        process.kill(process.pid, 'SIGTERM');
     });
-}
+};
 
 /**
  * Execute query to set isTerminated flag for a task
@@ -215,8 +216,13 @@ const executeTerminateQuery = async (connection, taskID) => {
                 resolve(taskID);
             }
         });
+    }).catch((alert) => {
+        // Report rejection reason
+        console.log('Error:', alert);
+        // and kill process
+        process.kill(process.pid, 'SIGTERM');
     });
-}
+};
 
 /**
  * Process CSV dataArray 
@@ -340,10 +346,11 @@ const saveToMySQL = async (dataArray, taskID) => {
             });    
         });
     // Catch error rejected by promise
-    }).catch((err) => {
-        console.log('Error:', err);
+    }).catch((alert) => {
+        // Report rejection reason
+        console.log('Error:', alert);
         // and kill process
-        exec('kill -TERM ' + process.pid.toString());
+        process.kill(process.pid, 'SIGTERM');
     });
 };
 
