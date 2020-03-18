@@ -107,7 +107,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                     
                     // Check is the task was resumed
                     // task.isResumed = ~task.isPaused
-                    if(!task.isPaused) {
+                    if(!task.isPaused && !task.isTerminated) {
                         // Resume Task
                         console.log('[RESUMEING] Task ->', key);
                         
@@ -120,7 +120,7 @@ const executeQuery = async (connection, taskID, csvData) => {
                         // Task was not resumed within 15 seconds
                         // then terminate the task
                         console.log('[TERMINATING] Task ->', key);
-                        
+
                         // Resume connection
                         await connection.resume();
                         
@@ -173,6 +173,42 @@ const executeQuery = async (connection, taskID, csvData) => {
 }
 
 /**
+ * Execute query to set isTerminated flag for a task
+ * @param {Object} connection [MySQL connection object]
+ * @param {String} taskID     [Task ID]
+ * @param {Array} fields      [Array of CSV fields and corresponing taskID and rowID]
+ */
+const executeTerminateQuery = async (connection, taskID) => {
+    
+    /**
+     * Promise to handle SQL query
+     * to set isTerminated flag for a task
+     */
+    return new Promise(async (resolve, reject) => {
+
+        /**
+         * Execute Query
+         * to set isTerminated flag for the task
+         * in the database
+         */
+        connection.query('UPDATE managerdb.tasks as TASK SET TASK.isTerminated = ? WHERE TASK.id = ?;', [1, taskID], function(err, results) {
+            if (err) {
+                // Query failes
+                console.log('Error Terminating Task ->', taskID);
+                
+                // Rollback changes on query failure
+                connection.rollback(function(err) {
+                    // Reject promise
+                    reject(err);
+                });
+            } else {
+                resolve(taskID);
+            }
+        });
+    });
+}
+
+/**
  * Process CSV dataArray 
  * and insert every row in database
  * @param {Array} dataArray 
@@ -211,31 +247,20 @@ const saveToMySQL = async (dataArray, taskID) => {
 
                     // If task was terminated
                     if(res === 'terminate') {
-                        /**
-                         * Execute Query
-                         * to set isTerminated flag for the task
-                         * in the database
-                         */
-                        connection.query('UPDATE managerdb.tasks as TASK SET TASK.isTerminated = ? WHERE TASK.id = ?;', [1, taskID], function(err, results) {
-                            if (err) {
-                                // Query failes
-                                console.log('Error Terminating Task ->', taskID);
-                                console.log(err);
-                                
-                                // Rollback changes on query failure
-                                connection.rollback(function(err) {
-                                    // Reject promise
-                                    reject(err);
-                                });
-                            }
-                        });
-
-                        // Perform rollback
-                        console.log('[ROLLBACK] Task ->', taskID);
-                        connection.rollback(function(err) {
-                            // Reject promise
-                            reject(err);
-                        });
+                        let termination = await executeTerminateQuery(connection, taskID);
+                        if(termination === taskID) {
+                            // Perform rollback
+                            console.log('[ROLLBACK] Task ->', taskID);
+                            connection.rollback(function(err) {
+                                // Reject promise
+                                reject(err);
+                            });
+                        }
+                        // Update cache
+                        let task = await cache.get(taskID);
+                        task = JSON.parse(task);
+                        task.isTerminated = 1;
+                        let updatedTask = await cache.set(taskID, JSON.stringify(task));
                     } else if(res === 'complete') {
                         // Update cached state of the task
                         // Get task current state from cache
