@@ -16,7 +16,7 @@ This repository holds the solution to the given challenge statement
 
 **Framework:** ExpressJS
 
-**Runtime Engine:** NodeJS (child process for concurrency)
+**Runtime Engine:** NodeJS
 
 **Database:** MySQL
 
@@ -25,6 +25,21 @@ This repository holds the solution to the given challenge statement
 **Caching:** Redis
 
 **Documentation:** apiDoc documentation
+
+## Node.js perspective
+
+At a high level, Node.js falls into the category of concurrent computation. This is a direct result of the single-threaded event loop being the backbone of a Node.js application. The event-loop repeatedly takes an event and then sequentially executes all listeners interested in that event.
+
+It also facilitates creation of child processes to leverage parallel processing on multi-core CPU based systems. When we spawn a new child process in Node.js, this take advantage of multi-core CPUs. A new process will be created and managed by the OS. That new process can be executed in parallel to the main process as long as your computer has at least 2 virtual CPU CORES.
+
+**What happens if we have 1 core and you spawn child process?**
+
+The same thing that happens when you have multiple cores. The operating system schedules the execution of the processes amongst N cores, which in this case, would mean that all processes are being executed by 1 CORE.
+
+**So do we still get some benefit?** 
+If you have one core, and you create child process, then processor will make them run in parallel (even one task is long running?).
+
+If the processes can be executed in parallel by the processor, then yes, we will get the benefit (intel processors do virtual core which let even single core act like multi core).
 
 ## Architecture
 
