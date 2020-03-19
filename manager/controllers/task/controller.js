@@ -164,7 +164,7 @@ const getTaskByID = async (req, res) => {
 }
 
 /**
- * @api {get} /api/v1/task/start start a long running task
+ * @api {post} /api/v1/task/start start a long running task
  * @apiVersion 1.0.0
  * @apiName start a long running task
  * @apiGroup all
@@ -231,7 +231,7 @@ const createNewTask = async (req, res) => {
 }
 
 /**
- * @api {get} /api/v1/task/pause pause long running task by id
+ * @api {put} /api/v1/task/pause pause long running task by id
  * @apiVersion 1.0.0
  * @apiName pause long running task by id
  * @apiGroup all
@@ -342,7 +342,7 @@ const pauseTaskByID = async (req, res) => {
 }
 
 /**
- * @api {get} /api/v1/task/resume resume a paused long running task by id
+ * @api {put} /api/v1/task/resume resume a paused long running task by id
  * @apiVersion 1.0.0
  * @apiName resume a paused long running task by id
  * @apiGroup all
@@ -453,7 +453,7 @@ const resumeTaskByID = async (req, res) => {
 }
 
 /**
- * @api {get} /api/v1/task/terminate terminate a long running task by id
+ * @api {put} /api/v1/task/terminate terminate a long running task by id
  * @apiVersion 1.0.0
  * @apiName terminate a long running task by id
  * @apiGroup all

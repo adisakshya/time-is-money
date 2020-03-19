@@ -22,24 +22,24 @@ router.route('/view')
  * START new long running task
  */
 router.route('/start')
-  .get(controller.createNewTask);
+  .post(controller.createNewTask);
 
 /**
  * PAUSE a long running task
  */
 router.route('/pause')
-  .get(controller.pauseTaskByID);
+  .put(controller.pauseTaskByID);
 
 /**
  * RESUME a long running task
  */
 router.route('/resume')
-  .get(controller.resumeTaskByID);
+  .put(controller.resumeTaskByID);
 
 /**
  * TERMINATE a long running task
  */
 router.route('/terminate')
-  .get(controller.terminateTaskByID);
+  .put(controller.terminateTaskByID);
 
 module.exports = router;
