@@ -142,7 +142,7 @@ const getTaskByID = async (req, res) => {
         } else {
             // Return response
             return res
-                .status(400)
+                .status(404)
                 .json({
                     "success": false,
                     "message": "Task Not Found",    // return task not found
@@ -320,7 +320,7 @@ const pauseTaskByID = async (req, res) => {
         } else {                    
             // Return response
             return res
-                .status(400)
+                .status(404)
                 .json({
                     "success": false,
                     "message": "Task not found",        // return task not found
@@ -431,7 +431,7 @@ const resumeTaskByID = async (req, res) => {
         } else {                    
             // Return response
             return res
-                .status(400)
+                .status(404)
                 .json({
                     "success": false,
                     "message": "Task not found",        // return task not found
@@ -541,7 +541,7 @@ const terminateTaskByID = async (req, res) => {
         } else {                    
             // Return response
             return res
-                .status(400)
+                .status(404)
                 .json({
                     "success": false,
                     "message": "Task not found",        // return task not found
