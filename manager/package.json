@@ -1,10 +1,22 @@
 {
-  "name": "manager",
-  "version": "0.0.0",
+  "name": "manager-api",
+  "version": "1.0.0",
+  "description": "API for managing long running tasks as child process.",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "echo \"Info: No tests specified\" && exit 0",
+    "build": "echo \"Info: No build specified\" && exit 0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adisakshya/time-is-money.git"
+  },
+  "keywords": [
+    "api",
+    "handle-long-running-tasks",
+    "chil-process"
+  ],
   "dependencies": {
     "debug": "~2.6.9",
     "express": "~4.16.1",
@@ -13,5 +25,11 @@
     "mysql": "^2.18.1",
     "redis": "^3.0.2",
     "uuid": "^7.0.2"
-  }
+  },
+  "author": "Adisakshya Chauhan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adisakshya/time-is-money/issues"
+  },
+  "homepage": "https://github.com/adisakshya/time-is-money#readme"
 }
