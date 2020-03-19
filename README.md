@@ -2,13 +2,13 @@
 
 If you ensure that the resources like compute/memory/storage/time are used efficiently at your end, and do not go into processing tasks that have already been stopped (and then to roll back the work done post the stop-action), you save time to devote to other tasks/clients and make money.
 
-[![](https://img.shields.io/badge/docs%20-view%20API%20Documentation-blue.svg?style=for-the-badge&logo=appveyor)](https://www.adisakshya.co/time-is-money/) [![made-for-atlan](https://img.shields.io/badge/Made%20for-Atlan-blue.svg?style=for-the-badge&logo=appveyor)](https://www.youtube.com/watch?v=Ldza4HUNZqg&feature=youtu.be) [![version](https://img.shields.io/badge/Version-1.0.0-blue.svg?style=for-the-badge&logo=appveyor)](https://www.youtube.com/watch?v=Ldza4HUNZqg&feature=youtu.be)
+[![](https://img.shields.io/badge/docs%20-view%20API%20Documentation-blue.svg?style=for-the-badge&logo=appveyor)](https://www.adisakshya.co/time-is-money/) [![made-for-atlan](https://img.shields.io/badge/Made%20for-Atlan-blue.svg?style=for-the-badge&logo=appveyor)](https://atlan.com/) [![version](https://img.shields.io/badge/Version-1.0.0-blue.svg?style=for-the-badge&logo=appveyor)](https://github.com/adisakshya/time-is-money)
 
 ## The Challenge
 
 You have a variety of long-running tasks that require time and resources on the servers. As it stands now, once you have triggered off a long-running task, there is no way to tap into it and pause/stop/terminate the task, upon realizing that an erroneous request went through from one of the clients (mostly web or pipeline).
 
-This repository holds the solution to the given challenge statement
+This repository holds my solution to the given challenge statement.
 
 ## Technology Stack
 
