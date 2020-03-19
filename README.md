@@ -93,3 +93,16 @@ Fig.3: Lower Level - Data flow diagram for the child process
   - Resume a paused long running task by id
       - ```http://<domain:port>/api/v1/task/resume?id=taskID```
       - Query Parameter: id [TaskID]
+      
+## Issues faced
+
+- **Pause operation**
+
+In the challenge statement, it is written that the user can stop the long-running task and choose to resume or terminate it, but it doesn't specify how long the user can keep a task paused and what happens after is user exceeds the defined time limit for holding the pause operation?
+
+- **Issue with MySQL docker container**
+
+I was validating the behaviour of the system for pause/resume and terminate actions on long-running tasks, which is parsing a CSV and inserting the fields in the database while doing so I encountered an issue with MySQL database container.
+
+While validating the system with CSV containing 1,00,000 rows and 20 columns, I started some tasks (all task using the same CSV), after a tasks successfully performed committed insert operation in the database, then MySQL database flashed an error saying "Ran out of memory, need more space" and sometimes flashes a message saying "Server unexpectedly closed the connection" when I check the database tables for CSV data it shows 100000 rows present in the database, the correct number for first committed task. 
+Now, while validating the system with a CSV containing 10, 10000, 20000, 30000, 60000, 70000 rows and 20 columns, then everything works fine.
