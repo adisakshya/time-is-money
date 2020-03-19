@@ -71,7 +71,7 @@ const executeQuery = async (connection, taskID, csvData) => {
             // Check if task was updated to terminated
             if(task.isTerminated && !task.isPaused) {
                 // Yes
-                console.log('[TERMINATING] Task');
+                console.log('[STARTING TERMINATING] Task');
                 
                 // Resolve promise to terminate the task
                 resolve('terminate');
@@ -288,7 +288,9 @@ const saveToMySQL = async (dataArray, taskID) => {
                         task = JSON.parse(task);
 
                         // Set isCompleted flag to true (1)
-                        task.isCompleted = 1
+                        task.isCompleted = 1;
+                        task.isPaused = 0;
+                        task.isTerminated = 0;
 
                         // Update the cached state of the task
                         let updatedTask = await cache.set(taskID, JSON.stringify(task));
