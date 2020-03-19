@@ -1,6 +1,6 @@
 define({ "api": [
   {
-    "type": "get",
+    "type": "put",
     "url": "/api/v1/task/pause",
     "title": "pause long running task by id",
     "version": "1.0.0",
@@ -35,7 +35,7 @@ define({ "api": [
     "groupTitle": "all"
   },
   {
-    "type": "get",
+    "type": "put",
     "url": "/api/v1/task/resume",
     "title": "resume a paused long running task by id",
     "version": "1.0.0",
@@ -94,7 +94,7 @@ define({ "api": [
     "groupTitle": "all"
   },
   {
-    "type": "get",
+    "type": "post",
     "url": "/api/v1/task/start",
     "title": "start a long running task",
     "version": "1.0.0",
@@ -118,7 +118,7 @@ define({ "api": [
     "groupTitle": "all"
   },
   {
-    "type": "get",
+    "type": "put",
     "url": "/api/v1/task/terminate",
     "title": "terminate a long running task by id",
     "version": "1.0.0",
