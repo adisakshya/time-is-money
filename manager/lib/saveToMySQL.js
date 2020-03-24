@@ -297,13 +297,13 @@ const saveToMySQL = async (dataArray, taskID) => {
 
                         /**
                          * Execute Query
-                         * to set isCOmpleted flag for the task
+                         * to set isCompleted flag for the task
                          * in the database
                          */
                         connection.query('UPDATE managerdb.tasks as TASK SET TASK.isCompleted = ? WHERE TASK.id = ?;', [1, taskID], function(err, results) {
                             if (err) {
                                 // Query failes
-                                console.log('Error Terminating Task');
+                                console.log('Error Completing Task');
                                 console.log(err);
                                 
                                 // Rollback changes on query failure
