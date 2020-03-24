@@ -101,9 +101,8 @@ const deleteKey = async(key) => {
 
 /**
  * DELETE all key-value from cache
- * @param {String} key 
  */
-const deleteAll = async(key) => {
+const deleteAll = async() => {
     
     /**
      * Promise to handle delete-all operation on cache
