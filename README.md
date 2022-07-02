@@ -43,13 +43,13 @@ If the processes can be executed in parallel by the processor, then yes, we will
 
 ## Architecture
 
-![High level client interaction with system](https://raw.githubusercontent.com/adisakshya/time-is-money/master/docs/archi/High%20level%20client%20interaction%20with%20system.png)
+![High level client interaction with system](docs/archi/High%20level%20client%20interaction%20with%20system.png)
 Fig.1: High Level - Client Interaction with the system
 
-![API - Handling client requests](https://raw.githubusercontent.com/adisakshya/time-is-money/master/docs/archi/API%20-%20Client%20Request%20Handling.png)
+![API - Handling client requests](docs/archi/API%20-%20Client%20Request%20Handling.png)
 Fig.2: Middle Level - Logic for API handling client requests
 
-![Data flow diagram for the child process](https://raw.githubusercontent.com/adisakshya/time-is-money/master/docs/archi/Child%20Process%20Dataflow%20Diagram.png)
+![Data flow diagram for the child process](docs/archi/Child%20Process%20Dataflow%20Diagram.png)
 Fig.3: Lower Level - Data flow diagram for the child process
 
 ## Operating Instructions
