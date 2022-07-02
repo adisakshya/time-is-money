@@ -2,7 +2,7 @@
 
 If you ensure that the resources like compute/memory/storage/time are used efficiently at your end, and do not go into processing tasks that have already been stopped (and then to roll back the work done post the stop-action), you save time to devote to other tasks/clients and make money.
 
-[![](https://img.shields.io/badge/docs%20-view%20API%20Documentation-blue.svg?style=for-the-badge&logo=appveyor)](https://www.adisakshya.co/time-is-money/) [![made-for-atlan](https://img.shields.io/badge/Made%20for-Atlan-blue.svg?style=for-the-badge&logo=appveyor)](https://atlan.com/) [![version](https://img.shields.io/badge/Version-1.0.0-blue.svg?style=for-the-badge&logo=appveyor)](https://github.com/adisakshya/time-is-money)
+[![](https://img.shields.io/badge/docs%20-view%20API%20Documentation-blue.svg?style=for-the-badge&logo=appveyor)](https://www.adisakshya.co/time-is-money/)
 
 ## The Challenge
 
